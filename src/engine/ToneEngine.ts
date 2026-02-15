@@ -30,6 +30,17 @@ class ToneEngine {
   }
 
   /**
+   * Initialize FM synths for all tracks
+   */
+  initializeFMSynths(tracks: Track[]) {
+    tracks.forEach((track) => {
+      if (track.fmParams && !this.fmSynths.has(track.id)) {
+        this.createFMSynth(track.id, track.fmParams);
+      }
+    });
+  }
+
+  /**
    * Set BPM for the Transport
    */
   setBPM(bpm: number) {
@@ -147,7 +158,8 @@ class ToneEngine {
     trackId: number,
     track: Track,
     events: MIDIEvent[],
-    globalSwing: number
+    globalSwing: number,
+    allTracks: Track[]
   ) {
     // Dispose old part if exists
     if (this.trackParts[trackId]) {
@@ -163,6 +175,9 @@ class ToneEngine {
       return; // No events to schedule
     }
 
+    // Check if any track has solo enabled
+    const hasSoloTracks = allTracks.some(t => t.solo);
+
     // Calculate timestamps with swing
     const eventsWithTimestamps = trackEvents.map((event) => {
       const timestamp = calculateEventTimestamp(
@@ -175,8 +190,9 @@ class ToneEngine {
 
     // Create new Tone.Part
     const part = new Tone.Part((time, event: MIDIEvent) => {
-      // Check mute/solo
+      // Check mute/solo logic
       if (track.mute) return;
+      if (hasSoloTracks && !track.solo) return;
       
       // Play sound
       if (track.mode === 'sample') {
@@ -204,7 +220,9 @@ class ToneEngine {
   ) {
     const players = this.players.get(trackId);
     if (!players || players.length === 0) {
-      // No sample loaded, use FM synth as fallback or do nothing
+      // No sample loaded, use FM synth as fallback
+      console.log(`No sample for track ${trackId}, using FM fallback`);
+      this.playFMSynth(trackId, event, time, trackVolume);
       return;
     }
 
@@ -256,8 +274,12 @@ class ToneEngine {
     globalSwing: number
   ) {
     this.setBPM(bpm);
+    
+    // Ensure all FM synths exist
+    this.initializeFMSynths(tracks);
+    
     tracks.forEach((track) => {
-      this.updateTrackSequence(track.id, track, events, globalSwing);
+      this.updateTrackSequence(track.id, track, events, globalSwing, tracks);
     });
   }
 
