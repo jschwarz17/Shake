@@ -18,6 +18,7 @@ function App() {
   const [currentView, setCurrentView] = React.useState<View>('pad');
   const [selectedTrack, setSelectedTrack] = React.useState(0);
   const [isInitialized, setIsInitialized] = React.useState(false);
+  const [isRecording, setIsRecording] = React.useState(false);
   
   const bpm = useMIDIStore((state) => state.bpm);
   const setBPM = useMIDIStore((state) => state.setBPM);
@@ -42,7 +43,7 @@ function App() {
     }
   };
 
-  // Load default drum samples
+  // Load default drum samples in background (does not change track mode - user toggles per pad)
   const loadDefaultSamples = async () => {
     console.log('Loading default drum samples...');
     
@@ -51,26 +52,21 @@ function App() {
       if (url) {
         try {
           await toneEngine.loadSample(trackId, url);
-          
-          // Update store to indicate sample is loaded and switch to sample mode
           updateTrack(trackId, {
-            mode: 'sample',
             sample: {
               name: `Default ${tracks[trackId].name}`,
-              buffer: null, // Buffer is managed by ToneEngine
+              buffer: null,
               url: url,
               startTime: 0,
               duration: 1,
             },
           });
-          
           console.log(`Loaded sample for track ${trackId}: ${tracks[trackId].name}`);
         } catch (error) {
           console.error(`Failed to load sample for track ${trackId}:`, error);
         }
       }
     }
-    
     console.log('Default samples loaded!');
   };
 
@@ -106,24 +102,27 @@ function App() {
     setCurrentStep(0);
   };
 
+  const btnBase = 'px-4 py-2 rounded-lg bg-[rgba(255,255,255,0.05)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] text-xs font-bold uppercase tracking-widest text-[rgba(255,255,255,0.8)] transition-all duration-200 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:text-white hover:border-[rgba(255,255,255,0.3)] active:scale-95 active:bg-[rgba(255,255,255,0.05)]';
+  const btnActive = '!bg-[rgba(59,130,246,0.2)] !border-cyan-400/50 text-cyan-300 shadow-[0_0_15px_rgba(56,189,248,0.3)]';
+
   return (
     <div className="h-screen w-full bg-[#050505] text-white overflow-hidden flex flex-col">
-      {/* Header */}
-      <header className="bg-gray-900/50 backdrop-blur-md border-b border-gray-800/50 p-4 flex-shrink-0">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-white text-3xl font-bold tracking-wider">SHAKE</h1>
-          
+      {/* Header - fixed height */}
+      <header className="h-16 flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] flex items-center">
+        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-4">
+          <h1 className="text-white text-2xl font-bold tracking-wider ml-6">SHAKE</h1>
+
           {/* Transport Controls */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={handlePlayPause}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.2),0_6px_12px_rgba(0,0,0,0.3)] hover:shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 border border-blue-500"
+              className={`${btnBase} ${isPlaying ? 'text-green-400 border-green-400/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : ''}`}
             >
               {isPlaying ? 'PAUSE' : 'PLAY'}
             </button>
             <button
               onClick={handleStop}
-              className="px-6 py-2 bg-slate-600 text-white rounded-lg font-medium transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.2),0_6px_12px_rgba(0,0,0,0.3)] hover:shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 border border-slate-500"
+              className={`${btnBase} active:text-red-400 active:border-red-400/50 active:shadow-[0_0_15px_rgba(248,113,113,0.3)]`}
             >
               STOP
             </button>
@@ -132,18 +131,21 @@ function App() {
           {/* BPM and Swing Controls */}
           <div className="flex items-center gap-6">
             <div>
-              <label className="block text-gray-400 text-xs mb-1 uppercase tracking-wider">BPM</label>
-              <input
-                type="number"
-                min="60"
-                max="240"
-                value={bpm}
-                onChange={(e) => setBPM(Math.min(240, Math.max(60, parseInt(e.target.value) || 120)))}
-                className="w-20 px-2 py-1 bg-slate-800 text-white rounded border border-slate-600 text-center shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
-              />
+              <label className="block text-white/50 text-[10px] mb-0.5 uppercase tracking-widest">BPM</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="60"
+                  max="240"
+                  value={bpm}
+                  onChange={(e) => setBPM(parseInt(e.target.value) || 120)}
+                  className="w-32 accent-cyan-500"
+                />
+                <span className="text-white font-mono w-10 text-sm tabular-nums">{bpm}</span>
+              </div>
             </div>
             <div>
-              <label className="block text-gray-400 text-xs mb-1 uppercase tracking-wider">
+              <label className="block text-white/50 text-[10px] mb-0.5 uppercase tracking-widest">
                 Swing: {globalSwing}
               </label>
               <input
@@ -152,32 +154,21 @@ function App() {
                 max="100"
                 value={globalSwing}
                 onChange={(e) => setGlobalSwing(parseInt(e.target.value))}
-                className="w-32"
+                className="w-32 accent-cyan-500"
               />
             </div>
           </div>
         </div>
       </header>
 
-      {/* Navigation - 3D raised buttons */}
-      <nav className="bg-gray-900/20 backdrop-blur-md border-b border-white/5 flex-shrink-0">
-        <div className="max-w-7xl mx-auto flex">
+      {/* Navigation - Frosted 3D Glass */}
+      <nav className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)]">
+        <div className="max-w-7xl mx-auto flex gap-1 px-4 py-2">
           {(['pad', 'sequencer', 'presets', 'fm', 'sound'] as View[]).map((view) => (
             <button
               key={view}
               onClick={() => setCurrentView(view)}
-              className={`
-                px-6 py-3 font-semibold transition-all duration-200 tracking-widest
-                rounded-lg mx-0.5
-                shadow-[0_4px_0_0_rgba(0,0,0,0.2),0_6px_12px_rgba(0,0,0,0.3)]
-                hover:shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)]
-                active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
-                active:translate-y-0.5
-                ${currentView === view
-                  ? 'bg-white text-gray-900 border border-gray-200 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'
-                  : 'bg-slate-700/80 text-white border border-slate-600/80 hover:bg-slate-600/90'
-                }
-              `}
+              className={`${btnBase} ${currentView === view ? btnActive : ''}`}
             >
               {view === 'fm' ? 'FM SYNTH' : view.toUpperCase()}
             </button>
@@ -185,26 +176,16 @@ function App() {
         </div>
       </nav>
 
-      {/* Track Selector for FM/Sound views */}
-      {(currentView === 'fm' || currentView === 'sound') && (
-        <div className="bg-gray-900/30 backdrop-blur-md border-b border-gray-800/50 p-4 flex-shrink-0">
+      {/* Track Selector for Sound view only (FM shows all pads in scroll) */}
+      {currentView === 'sound' && (
+        <div className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center gap-2">
-            <span className="text-gray-400 text-sm uppercase tracking-wider">Select Track:</span>
+            <span className="text-white/50 text-xs uppercase tracking-widest mr-2">Select Track:</span>
             {tracks.map((track) => (
               <button
                 key={track.id}
                 onClick={() => setSelectedTrack(track.id)}
-                className={`
-                  px-4 py-2 rounded text-sm font-medium transition-all
-                  shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)]
-                  hover:shadow-[0_1px_0_0_rgba(0,0,0,0.2),0_2px_4px_rgba(0,0,0,0.3)]
-                  active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
-                  active:translate-y-0.5
-                  ${selectedTrack === track.id
-                    ? 'bg-blue-600 text-white border border-blue-500'
-                    : 'bg-slate-700 text-white border border-slate-600 hover:bg-slate-600'
-                  }
-                `}
+                className={`${btnBase} ${selectedTrack === track.id ? btnActive : ''}`}
               >
                 {track.name}
               </button>
@@ -213,21 +194,21 @@ function App() {
         </div>
       )}
 
-      {/* Main Content - Takes up remaining space */}
-      <main className={`flex-grow min-h-0 flex flex-col ${currentView === 'pad' ? 'overflow-hidden' : 'overflow-auto'}`}>
+      {/* Main Content - flex-1 min-h-0, overflow-hidden for pad view */}
+      <main className={`flex-1 min-h-0 flex flex-col ${currentView === 'pad' ? 'overflow-hidden' : 'overflow-auto'}`}>
         {currentView === 'pad' && <PadView />}
         {currentView === 'sequencer' && <SequencerView />}
         {currentView === 'presets' && <PresetSelector />}
-        {currentView === 'fm' && <FMDrumView trackId={selectedTrack} />}
+        {currentView === 'fm' && <FMDrumView />}
         {currentView === 'sound' && <SoundView trackId={selectedTrack} />}
       </main>
 
-      {/* Footer Controls */}
-      <footer className="bg-gray-900/50 backdrop-blur-md border-t border-gray-800/50 p-4 flex-shrink-0">
-        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-          <div className="flex gap-4 items-center flex-wrap">
-            <div className="flex flex-col gap-1">
-              <label className="text-gray-400 text-xs uppercase tracking-wider">Global BPM</label>
+      {/* Footer - fixed height */}
+      <footer className="h-16 flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-t border-[rgba(255,255,255,0.1)] flex items-center">
+        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-4 flex-wrap gap-3">
+          <div className="flex gap-3 items-center flex-wrap">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-white/50 text-[10px] uppercase tracking-widest">Global BPM</label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -240,8 +221,8 @@ function App() {
                 <span className="text-white font-mono w-12 text-sm">{bpm}</span>
               </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-gray-400 text-xs uppercase tracking-wider">Swing</label>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-white/50 text-[10px] uppercase tracking-widest">Swing</label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -254,29 +235,27 @@ function App() {
                 <span className="text-white font-mono w-8 text-sm">{globalSwing}</span>
               </div>
             </div>
-            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
+            <button
+              onClick={() => setIsRecording(!isRecording)}
+              className={`${btnBase} ${isRecording ? 'text-red-400 border-red-400/50 animate-pulse shadow-[0_0_15px_rgba(248,113,113,0.3)]' : ''}`}
+            >
               Rec
             </button>
-            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
+            <button className={btnBase}>
               Save
             </button>
           </div>
-          
+
           <div className="flex gap-2 items-center">
-            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
-              Master
-            </button>
-            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
-              Master
-            </button>
+            <button className={btnBase}>Master</button>
             <div className="flex items-center gap-2">
-              <span className="text-gray-400 text-xs uppercase tracking-wider">Master Volume</span>
+              <span className="text-white/50 text-[10px] uppercase tracking-widest">Master Volume</span>
               <input
                 type="range"
                 min="0"
                 max="100"
                 defaultValue="80"
-                className="w-32"
+                className="w-32 accent-cyan-500"
               />
             </div>
           </div>

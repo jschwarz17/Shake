@@ -29,7 +29,7 @@ export const PresetSelector: React.FC = () => {
             "
           >
             <h3 className="text-white font-bold text-sm mb-1">{preset.name}</h3>
-            <p className="text-gray-400 text-xs">{preset.description}</p>
+            <p className="text-white text-xs">{preset.description}</p>
           </button>
         ))}
       </div>
