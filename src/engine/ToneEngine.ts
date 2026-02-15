@@ -48,6 +48,32 @@ class ToneEngine {
   }
 
   /**
+   * Trigger a pad immediately (sample or FM based on track mode).
+   * Call this when user clicks a pad. Initializes Tone if needed.
+   */
+  async triggerPad(trackId: number, track: Track): Promise<void> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
+    const now = Tone.now();
+    const event: MIDIEvent = {
+      id: `pad-${Date.now()}`,
+      trackId,
+      step: 0,
+      note: track.midiNote,
+      velocity: 100,
+      tick: 0,
+      duration: 0.1,
+    };
+    if (track.mode === 'sample') {
+      this.playSample(trackId, event, now, track.volume);
+    } else if (track.mode === 'fm') {
+      this.initializeFMSynths([track]);
+      this.playFMSynth(trackId, event, now, track.volume);
+    }
+  }
+
+  /**
    * Start playback
    */
   start() {
@@ -221,23 +247,18 @@ class ToneEngine {
   ) {
     const players = this.players.get(trackId);
     if (!players || players.length === 0) {
-      // No sample loaded, use FM synth as fallback
       console.warn(`No sample for track ${trackId}, using FM fallback`);
       this.playFMSynth(trackId, event, time, trackVolume);
       return;
     }
 
-    // Use the first available player
     const player = players[0];
-    
-    if (!player.buffer || !player.buffer.loaded) {
+    const bufLoaded = player.buffer?.loaded ?? false;
+    if (!player.buffer || !bufLoaded) {
       console.error(`Sample buffer not loaded for track ${trackId}`);
       return;
     }
-    
-    console.log(`Playing sample for track ${trackId} at time ${time}`);
-    
-    // Clone player for polyphony
+
     const newPlayer = new Tone.Player(player.buffer).toDestination();
     newPlayer.volume.value = Tone.gainToDb((event.velocity / 127) * trackVolume);
     newPlayer.start(time);

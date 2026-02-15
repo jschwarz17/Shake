@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
-import { FMDrumSynth } from '../synth/FMSynth';
+import { toneEngine } from '../engine/ToneEngine';
 
 interface PadProps {
   trackId: number;
@@ -14,36 +14,27 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, isActive }) => {
   return (
     <button
       onClick={onTrigger}
-      style={{
-        background: 'linear-gradient(to bottom right, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))',
-        backdropFilter: 'blur(12px)',
-        boxShadow: isActive 
-          ? '0 4px 16px 0 rgba(0,0,0,0.8), inset 0 0 30px rgba(56,189,248,0.4)'
-          : '0 8px 32px 0 rgba(0,0,0,0.6), inset 0 0 30px rgba(56,189,248,0.15)',
-      }}
       className={`
-        aspect-square rounded-2xl
-        border border-white/20
+        aspect-square relative
         flex flex-col items-center justify-center
-        transition-all duration-150
-        hover:border-cyan-400/50
-        active:scale-[0.98]
-        ${isActive ? 'scale-[0.98]' : ''}
+        rounded-[1.5rem]
+        border border-white/10
+        bg-slate-900/30
+        backdrop-blur-md
+        transition-all duration-150 ease-out
+        shadow-[0_8px_30px_rgba(0,0,0,0.5),inset_0px_10px_20px_rgba(255,255,255,0.05),inset_0px_-10px_30px_rgba(56,189,248,0.15)]
+        hover:bg-slate-800/40 hover:border-cyan-400/30
+        active:scale-[0.98] active:shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0px_5px_10px_rgba(255,255,255,0.05),inset_0px_-5px_15px_rgba(56,189,248,0.2)]
+        ${isActive ? 'scale-[0.98] shadow-[0_4px_15px_rgba(0,0,0,0.4),inset_0px_5px_10px_rgba(255,255,255,0.05),inset_0px_-5px_15px_rgba(56,189,248,0.2)]' : ''}
       `}
     >
-      <span className="text-3xl font-bold tracking-widest text-white" style={{ textShadow: '0 2px 10px rgba(255,255,255,0.5)' }}>
+      <span className="text-4xl font-bold tracking-wider text-white drop-shadow-md">
         {name}
       </span>
-      <span className="text-sm text-cyan-200 uppercase mt-2 tracking-wider font-semibold">
+      <span className="text-[0.65rem] uppercase tracking-[0.15em] text-blue-200/70 mt-1">
         {mode}
       </span>
-      <div 
-        className="w-10 h-1 mx-auto mt-5 rounded-full"
-        style={{
-          background: 'linear-gradient(to right, rgb(56, 189, 248), rgb(59, 130, 246))',
-          boxShadow: '0 0 12px rgba(56,189,248,1), 0 0 20px rgba(56,189,248,0.6)'
-        }}
-      />
+      <div className="w-6 h-[3px] rounded-full bg-cyan-400/80 shadow-[0_0_10px_2px_rgba(34,211,238,0.6)] mt-3"></div>
     </button>
   );
 };
@@ -51,26 +42,11 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, isActive }) => {
 export const PadView: React.FC = () => {
   const tracks = useMIDIStore((state) => state.tracks);
   const [activePads, setActivePads] = React.useState<Set<number>>(new Set());
-  const synthsRef = React.useRef<Map<number, FMDrumSynth>>(new Map());
-
-  // Initialize FM synths for tracks
-  React.useEffect(() => {
-    tracks.forEach((track) => {
-      if (track.mode === 'fm' && track.fmParams && !synthsRef.current.has(track.id)) {
-        const synth = new FMDrumSynth(track.fmParams);
-        synthsRef.current.set(track.id, synth);
-      }
-    });
-
-    return () => {
-      synthsRef.current.forEach((synth) => synth.dispose());
-      synthsRef.current.clear();
-    };
-  }, [tracks]);
 
   const handlePadTrigger = (trackId: number) => {
     const track = tracks[trackId];
-    
+    if (!track) return;
+
     // Visual feedback
     setActivePads((prev) => new Set(prev).add(trackId));
     setTimeout(() => {
@@ -81,32 +57,31 @@ export const PadView: React.FC = () => {
       });
     }, 150);
 
-    // Trigger sound
-    if (track.mode === 'fm') {
-      const synth = synthsRef.current.get(trackId);
-      if (synth) {
-        synth.trigger(track.midiNote, 100);
-      }
-    }
-    // Sample playback would be handled by ToneEngine
+    // Trigger sound via ToneEngine (handles both sample and FM)
+    toneEngine.triggerPad(trackId, track);
   };
 
   return (
-    <div className="h-full w-full flex items-center justify-center p-4">
-      {/* 3x3 Grid Container - constrained to fit viewport */}
-      <div className="w-full h-full max-w-[90vh] max-h-[calc(100vh-200px)]">
-        <div className="grid grid-cols-3 gap-3 h-full w-full">
-          {tracks.map((track) => (
-            <Pad
-              key={track.id}
-              trackId={track.id}
-              name={track.name}
-              mode={track.mode}
-              onTrigger={() => handlePadTrigger(track.id)}
-              isActive={activePads.has(track.id)}
-            />
-          ))}
-        </div>
+    <div className="flex-1 min-h-0 flex items-center justify-center p-4 overflow-hidden">
+      {/* 3x3 Grid - centered, square, fits viewport (no scrolling) */}
+      <div 
+        className="grid grid-cols-3 gap-4 w-full"
+        style={{ 
+          maxWidth: 'min(90vw, calc(100vh - 220px))',
+          maxHeight: 'min(90vw, calc(100vh - 220px))',
+          aspectRatio: '1'
+        }}
+      >
+        {tracks.map((track) => (
+          <Pad
+            key={track.id}
+            trackId={track.id}
+            name={track.name}
+            mode={track.mode}
+            onTrigger={() => handlePadTrigger(track.id)}
+            isActive={activePads.has(track.id)}
+          />
+        ))}
       </div>
     </div>
   );

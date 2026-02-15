@@ -19,15 +19,15 @@ const StepButton: React.FC<StepButtonProps> = ({
     <button
       onClick={onToggle}
       className={`
-        w-full rounded transition-all border
+        w-full rounded-lg transition-all duration-150 border
+        aspect-square min-h-[40px]
         ${isActive 
-          ? 'bg-blue-500 hover:bg-blue-600 border-blue-400' 
-          : 'bg-gray-800 hover:bg-gray-700 border-gray-700'
+          ? 'bg-blue-500 border-blue-400' 
+          : 'bg-slate-800/60 border-slate-600/50 hover:bg-slate-700/70 shadow-[0_2px_4px_rgba(0,0,0,0.3)]'
         }
-        ${isCurrent ? 'ring-2 ring-blue-400' : ''}
-        ${step % 4 === 0 ? 'border-l-2 border-gray-600' : ''}
+        ${isCurrent ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#050505]' : ''}
+        ${step % 4 === 0 ? 'border-l-2 border-l-slate-600/50' : ''}
       `}
-      style={{ height: '48px', minHeight: '48px' }}
       title={`Step ${step + 1}`}
     />
   );
@@ -68,15 +68,19 @@ const TrackRow: React.FC<TrackRowProps> = ({
 
   return (
     <div className="flex items-center gap-3 mb-3">
-      {/* Track name and controls */}
-      <div className="w-32 flex flex-col gap-1 flex-shrink-0">
-        <span className="text-white text-sm font-medium">{name}</span>
+      {/* Sample/sound name and controls - name prominent and highly visible */}
+      <div className="w-36 flex flex-row items-center gap-2 flex-shrink-0">
+        <span className="text-lg font-bold tracking-wider text-white min-w-[5rem] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" style={{ textShadow: '0 0 8px rgba(255,255,255,0.3)' }}>
+          {name}
+        </span>
         <div className="flex gap-1">
           <button
             onClick={onToggleMute}
             className={`
               px-2 py-1 rounded text-xs font-medium transition-all
-              ${isMuted ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+              shadow-[0_2px_0_0_rgba(0,0,0,0.2)]
+              active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
+              ${isMuted ? 'bg-red-600 text-white border border-red-500' : 'bg-slate-700 text-white border border-slate-600 hover:bg-slate-600'}
             `}
           >
             M
@@ -85,7 +89,9 @@ const TrackRow: React.FC<TrackRowProps> = ({
             onClick={onToggleSolo}
             className={`
               px-2 py-1 rounded text-xs font-medium transition-all
-              ${isSolo ? 'bg-yellow-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+              shadow-[0_2px_0_0_rgba(0,0,0,0.2)]
+              active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
+              ${isSolo ? 'bg-yellow-600 text-white border border-yellow-500' : 'bg-slate-700 text-white border border-slate-600 hover:bg-slate-600'}
             `}
           >
             S
@@ -93,9 +99,9 @@ const TrackRow: React.FC<TrackRowProps> = ({
         </div>
       </div>
 
-      {/* 16 step buttons */}
+      {/* 16 step buttons - relative for current step bar */}
       <div 
-        className="flex-1 grid gap-1 min-w-0"
+        className="flex-1 grid gap-1 min-w-0 relative"
         style={{ gridTemplateColumns: 'repeat(16, minmax(0, 1fr))' }}
       >
         {Array.from({ length: 16 }, (_, step) => (
@@ -115,15 +121,14 @@ const TrackRow: React.FC<TrackRowProps> = ({
 
 export const SequencerView: React.FC = () => {
   const tracks = useMIDIStore((state) => state.tracks);
+  const currentStep = useMIDIStore((state) => state.currentStep);
   const toggleMute = useMIDIStore((state) => state.toggleMute);
   const toggleSolo = useMIDIStore((state) => state.toggleSolo);
   const clearAllTracks = useMIDIStore((state) => state.clearAllTracks);
 
-  console.log('SequencerView rendering with tracks:', tracks);
-
   if (!tracks || tracks.length === 0) {
     return (
-      <div className="p-6 bg-black min-h-screen">
+      <div className="p-6 bg-[#050505] min-h-screen">
         <div className="bg-red-600 text-white p-4 rounded">
           ERROR: No tracks loaded! Check console.
         </div>
@@ -132,29 +137,23 @@ export const SequencerView: React.FC = () => {
   }
 
   return (
-    <div className="p-6 min-h-screen" style={{ backgroundColor: '#000000' }}>
-      {/* Forced visibility test box */}
-      <div className="bg-red-500 text-white p-4 mb-4 rounded">
-        TEST: If you can see this red box, rendering works! Tracks: {tracks.length}
-      </div>
-
+    <div className="p-6 min-h-screen bg-[#050505]">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white text-2xl font-bold" style={{ color: '#ffffff' }}>
-          Sequencer ({tracks.length} tracks)
+        <h2 className="text-white text-2xl font-bold tracking-wider uppercase" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
+          Sequencer
         </h2>
         <button
           onClick={clearAllTracks}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
-          style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
+          className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-all border border-red-500 shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5"
         >
           Clear All
         </button>
       </div>
 
-      <div className="space-y-3 max-w-full overflow-x-auto">
-        {tracks.map((track, index) => {
-          console.log(`Rendering track ${index}:`, track.name);
-          return (
+      {/* Grid with current step indicator overlay */}
+      <div className="relative">
+        <div className="space-y-3 max-w-full overflow-x-auto">
+          {tracks.map((track) => (
             <TrackRow
               key={track.id}
               trackId={track.id}
@@ -164,8 +163,21 @@ export const SequencerView: React.FC = () => {
               onToggleMute={() => toggleMute(track.id)}
               onToggleSolo={() => toggleSolo(track.id)}
             />
-          );
-        })}
+          ))}
+        </div>
+        
+        {/* Current step vertical bar - highlights the column being played */}
+        <div
+          className="absolute top-0 bottom-0 pointer-events-none rounded transition-all duration-75"
+          style={{
+            left: `calc(9rem + (100% - 9rem - 1rem) * ${currentStep} / 16)`,
+            width: `calc((100% - 9rem - 1rem) / 16)`,
+            background: 'rgba(56, 189, 248, 0.15)',
+            borderLeft: '2px solid rgba(56, 189, 248, 0.5)',
+            borderRight: '2px solid rgba(56, 189, 248, 0.5)',
+            boxShadow: 'inset 0 0 30px rgba(56, 189, 248, 0.2)',
+          }}
+        />
       </div>
     </div>
   );

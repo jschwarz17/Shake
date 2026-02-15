@@ -74,10 +74,14 @@ function App() {
     console.log('Default samples loaded!');
   };
 
+  // Update Tone.js BPM whenever it changes (works even before init)
+  React.useEffect(() => {
+    toneEngine.setBPM(bpm);
+  }, [bpm]);
+
   // Update Tone.js when events or settings change
   React.useEffect(() => {
     if (isInitialized) {
-      toneEngine.setBPM(bpm);
       toneEngine.updateAllTracks(tracks, events, bpm, globalSwing);
     }
   }, [isInitialized, bpm, globalSwing, tracks, events]);
@@ -113,13 +117,13 @@ function App() {
           <div className="flex items-center gap-4">
             <button
               onClick={handlePlayPause}
-              className="px-6 py-2 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg font-medium transition-all backdrop-blur-sm"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.2),0_6px_12px_rgba(0,0,0,0.3)] hover:shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 border border-blue-500"
             >
               {isPlaying ? 'PAUSE' : 'PLAY'}
             </button>
             <button
               onClick={handleStop}
-              className="px-6 py-2 bg-gray-700/80 hover:bg-gray-600 text-white rounded-lg font-medium transition-all backdrop-blur-sm"
+              className="px-6 py-2 bg-slate-600 text-white rounded-lg font-medium transition-all shadow-[0_4px_0_0_rgba(0,0,0,0.2),0_6px_12px_rgba(0,0,0,0.3)] hover:shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 border border-slate-500"
             >
               STOP
             </button>
@@ -134,8 +138,8 @@ function App() {
                 min="60"
                 max="240"
                 value={bpm}
-                onChange={(e) => setBPM(parseInt(e.target.value))}
-                className="w-20 px-2 py-1 bg-gray-800/50 backdrop-blur-sm text-white rounded border border-gray-700/50 text-center"
+                onChange={(e) => setBPM(Math.min(240, Math.max(60, parseInt(e.target.value) || 120)))}
+                className="w-20 px-2 py-1 bg-slate-800 text-white rounded border border-slate-600 text-center shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
               />
             </div>
             <div>
@@ -155,18 +159,23 @@ function App() {
         </div>
       </header>
 
-      {/* Navigation */}
-      <nav className="bg-gray-900/30 backdrop-blur-md border-b border-gray-800/50 flex-shrink-0">
+      {/* Navigation - 3D raised buttons */}
+      <nav className="bg-gray-900/20 backdrop-blur-md border-b border-white/5 flex-shrink-0">
         <div className="max-w-7xl mx-auto flex">
           {(['pad', 'sequencer', 'presets', 'fm', 'sound'] as View[]).map((view) => (
             <button
               key={view}
               onClick={() => setCurrentView(view)}
               className={`
-                px-6 py-3 font-medium transition-all capitalize tracking-wider
+                px-6 py-3 font-semibold transition-all duration-200 tracking-widest
+                rounded-lg mx-0.5
+                shadow-[0_4px_0_0_rgba(0,0,0,0.2),0_6px_12px_rgba(0,0,0,0.3)]
+                hover:shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)]
+                active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
+                active:translate-y-0.5
                 ${currentView === view
-                  ? 'bg-black/50 text-cyan-400 border-b-2 border-cyan-400/50 backdrop-blur-sm'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                  ? 'bg-white text-gray-900 border border-gray-200 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'
+                  : 'bg-slate-700/80 text-white border border-slate-600/80 hover:bg-slate-600/90'
                 }
               `}
             >
@@ -186,10 +195,14 @@ function App() {
                 key={track.id}
                 onClick={() => setSelectedTrack(track.id)}
                 className={`
-                  px-4 py-2 rounded transition-all text-sm font-medium backdrop-blur-sm
+                  px-4 py-2 rounded text-sm font-medium transition-all
+                  shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)]
+                  hover:shadow-[0_1px_0_0_rgba(0,0,0,0.2),0_2px_4px_rgba(0,0,0,0.3)]
+                  active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
+                  active:translate-y-0.5
                   ${selectedTrack === track.id
-                    ? 'bg-blue-600/80 text-white border border-cyan-400/50'
-                    : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-gray-700/50'
+                    ? 'bg-blue-600 text-white border border-blue-500'
+                    : 'bg-slate-700 text-white border border-slate-600 hover:bg-slate-600'
                   }
                 `}
               >
@@ -201,7 +214,7 @@ function App() {
       )}
 
       {/* Main Content - Takes up remaining space */}
-      <main className="flex-grow overflow-auto">
+      <main className={`flex-grow min-h-0 flex flex-col ${currentView === 'pad' ? 'overflow-hidden' : 'overflow-auto'}`}>
         {currentView === 'pad' && <PadView />}
         {currentView === 'sequencer' && <SequencerView />}
         {currentView === 'presets' && <PresetSelector />}
@@ -211,27 +224,49 @@ function App() {
 
       {/* Footer Controls */}
       <footer className="bg-gray-900/50 backdrop-blur-md border-t border-gray-800/50 p-4 flex-shrink-0">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex gap-2">
-            <button className="px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 text-sm rounded backdrop-blur-sm border border-gray-700/50 uppercase tracking-wider">
-              Global BPM
-            </button>
-            <button className="px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 text-sm rounded backdrop-blur-sm border border-gray-700/50 uppercase tracking-wider">
-              Swing
-            </button>
-            <button className="px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 text-sm rounded backdrop-blur-sm border border-gray-700/50 uppercase tracking-wider">
+        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+          <div className="flex gap-4 items-center flex-wrap">
+            <div className="flex flex-col gap-1">
+              <label className="text-gray-400 text-xs uppercase tracking-wider">Global BPM</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="60"
+                  max="240"
+                  value={bpm}
+                  onChange={(e) => setBPM(parseInt(e.target.value) || 120)}
+                  className="w-32 accent-cyan-500"
+                />
+                <span className="text-white font-mono w-12 text-sm">{bpm}</span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-gray-400 text-xs uppercase tracking-wider">Swing</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={globalSwing}
+                  onChange={(e) => setGlobalSwing(parseInt(e.target.value) || 50)}
+                  className="w-32 accent-cyan-500"
+                />
+                <span className="text-white font-mono w-8 text-sm">{globalSwing}</span>
+              </div>
+            </div>
+            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
               Rec
             </button>
-            <button className="px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 text-sm rounded backdrop-blur-sm border border-gray-700/50 uppercase tracking-wider">
+            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
               Save
             </button>
           </div>
           
           <div className="flex gap-2 items-center">
-            <button className="px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 text-sm rounded backdrop-blur-sm border border-gray-700/50 uppercase tracking-wider">
+            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
               Master
             </button>
-            <button className="px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 text-sm rounded backdrop-blur-sm border border-gray-700/50 uppercase tracking-wider">
+            <button className="px-4 py-2 bg-slate-700 text-white text-sm rounded border border-slate-600 uppercase tracking-wider shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] hover:bg-slate-600 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all">
               Master
             </button>
             <div className="flex items-center gap-2">

@@ -20,9 +20,12 @@ export const PresetSelector: React.FC = () => {
             key={index}
             onClick={() => handlePresetClick(index)}
             className="
-              bg-gray-900 hover:bg-gray-800 border border-gray-700 
-              hover:border-blue-500 rounded-lg p-4 transition-all
-              text-left
+              bg-slate-700 hover:bg-slate-600 border border-slate-600 
+              rounded-lg p-4 transition-all text-left
+              shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)]
+              hover:shadow-[0_1px_0_0_rgba(0,0,0,0.2),0_2px_4px_rgba(0,0,0,0.3)]
+              active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
+              active:translate-y-0.5
             "
           >
             <h3 className="text-white font-bold text-sm mb-1">{preset.name}</h3>
