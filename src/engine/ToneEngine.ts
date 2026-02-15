@@ -105,6 +105,7 @@ class ToneEngine {
    */
   async loadSample(trackId: number, url: string): Promise<void> {
     try {
+      console.log(`Loading sample for track ${trackId} from ${url}`);
       const player = new Tone.Player(url).toDestination();
       await player.load(url);
       
@@ -113,9 +114,9 @@ class ToneEngine {
       }
       this.players.get(trackId)!.push(player);
       
-      console.log(`Sample loaded for track ${trackId}`);
+      console.log(`✓ Sample loaded successfully for track ${trackId}. Buffer duration: ${player.buffer.duration}s`);
     } catch (error) {
-      console.error(`Failed to load sample for track ${trackId}:`, error);
+      console.error(`✗ Failed to load sample for track ${trackId}:`, error);
       throw error;
     }
   }
@@ -221,13 +222,20 @@ class ToneEngine {
     const players = this.players.get(trackId);
     if (!players || players.length === 0) {
       // No sample loaded, use FM synth as fallback
-      console.log(`No sample for track ${trackId}, using FM fallback`);
+      console.warn(`No sample for track ${trackId}, using FM fallback`);
       this.playFMSynth(trackId, event, time, trackVolume);
       return;
     }
 
     // Use the first available player
     const player = players[0];
+    
+    if (!player.buffer || !player.buffer.loaded) {
+      console.error(`Sample buffer not loaded for track ${trackId}`);
+      return;
+    }
+    
+    console.log(`Playing sample for track ${trackId} at time ${time}`);
     
     // Clone player for polyphony
     const newPlayer = new Tone.Player(player.buffer).toDestination();

@@ -109,27 +109,42 @@ export const SequencerView: React.FC = () => {
   const toggleSolo = useMIDIStore((state) => state.toggleSolo);
   const clearAllTracks = useMIDIStore((state) => state.clearAllTracks);
 
-  console.log('SequencerView rendering with tracks:', tracks.length);
+  console.log('SequencerView rendering with tracks:', tracks);
+
+  if (!tracks || tracks.length === 0) {
+    return (
+      <div className="p-6 bg-black min-h-screen">
+        <div className="bg-red-600 text-white p-4 rounded">
+          ERROR: No tracks loaded! Check console.
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 bg-black min-h-screen">
+    <div className="p-6 min-h-screen" style={{ backgroundColor: '#000000' }}>
+      {/* Forced visibility test box */}
+      <div className="bg-red-500 text-white p-4 mb-4 rounded">
+        TEST: If you can see this red box, rendering works! Tracks: {tracks.length}
+      </div>
+
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white text-2xl font-bold">Sequencer ({tracks.length} tracks)</h2>
+        <h2 className="text-white text-2xl font-bold" style={{ color: '#ffffff' }}>
+          Sequencer ({tracks.length} tracks)
+        </h2>
         <button
           onClick={clearAllTracks}
           className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+          style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
         >
           Clear All
         </button>
       </div>
 
-      {tracks.length === 0 ? (
-        <div className="text-white text-center py-12">
-          <p>No tracks loaded. This should not happen!</p>
-        </div>
-      ) : (
-        <div className="space-y-3 max-w-full overflow-x-auto">
-          {tracks.map((track) => (
+      <div className="space-y-3 max-w-full overflow-x-auto">
+        {tracks.map((track, index) => {
+          console.log(`Rendering track ${index}:`, track.name);
+          return (
             <TrackRow
               key={track.id}
               trackId={track.id}
@@ -139,9 +154,9 @@ export const SequencerView: React.FC = () => {
               onToggleMute={() => toggleMute(track.id)}
               onToggleSolo={() => toggleSolo(track.id)}
             />
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 };
