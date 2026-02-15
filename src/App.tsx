@@ -2,6 +2,7 @@ import React from 'react';
 import { useMIDIStore } from './engine/MIDIStore';
 import { toneEngine } from './engine/ToneEngine';
 import { loadAudioFile } from './engine/SampleLoader';
+import { TRACK_ID_TO_SAMPLE_URL } from './engine/defaultSamples';
 import { PadView } from './components/PadView';
 import { SequencerView } from './components/SequencerView';
 import { FMDrumView } from './components/FMDrumView';
@@ -32,7 +33,42 @@ function App() {
       await toneEngine.initialize();
       toneEngine.scheduleStepCallback(setCurrentStep);
       setIsInitialized(true);
+      
+      // Load default samples
+      await loadDefaultSamples();
     }
+  };
+
+  // Load default drum samples
+  const loadDefaultSamples = async () => {
+    console.log('Loading default drum samples...');
+    
+    for (let trackId = 0; trackId < 9; trackId++) {
+      const url = TRACK_ID_TO_SAMPLE_URL[trackId];
+      if (url) {
+        try {
+          await toneEngine.loadSample(trackId, url);
+          
+          // Update store to indicate sample is loaded and switch to sample mode
+          updateTrack(trackId, {
+            mode: 'sample',
+            sample: {
+              name: `Default ${tracks[trackId].name}`,
+              buffer: null, // Buffer is managed by ToneEngine
+              url: url,
+              startTime: 0,
+              duration: 1,
+            },
+          });
+          
+          console.log(`Loaded sample for track ${trackId}: ${tracks[trackId].name}`);
+        } catch (error) {
+          console.error(`Failed to load sample for track ${trackId}:`, error);
+        }
+      }
+    }
+    
+    console.log('Default samples loaded!');
   };
 
   // Update Tone.js when events or settings change
