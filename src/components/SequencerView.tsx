@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
+import { RHYTHM_PRESETS, loadPresetEvents } from '../presets/rhythmPresets';
 
 interface StepButtonProps {
   trackId: number;
@@ -15,18 +16,27 @@ const StepButton: React.FC<StepButtonProps> = ({
   isCurrent,
   onToggle,
 }) => {
+  const isGroupBoundary = step === 3 || step === 7 || step === 11;
+
   return (
     <button
       onClick={onToggle}
       className={`
-        w-full rounded-sm transition-all duration-150 border-2 border-white
-        aspect-square min-h-[40px]
-        ${isActive 
-          ? 'bg-blue-500 hover:bg-blue-600' 
-          : 'bg-black hover:bg-gray-900'
-        }
-        ${isCurrent ? 'ring-2 ring-cyan-400 ring-offset-1 ring-offset-[#050505]' : ''}
+        w-full h-full transition-colors
+        ${isCurrent ? 'ring-2 ring-blue-400 ring-offset-1 ring-offset-[#050505]' : ''}
       `}
+      style={{
+        background: isActive
+          ? 'linear-gradient(145deg, #5f9dff 0%, #3b82f6 45%, #1d4ed8 100%)'
+          : '#000000',
+        border: `0.5px solid ${isActive ? 'rgba(147,197,253,0.95)' : 'rgba(255,255,255,0.45)'}`,
+        borderRight: isGroupBoundary
+          ? `2px solid ${isActive ? 'rgba(147,197,253,0.95)' : 'rgba(255,255,255,0.75)'}`
+          : undefined,
+        boxShadow: isActive
+          ? '0 0 14px rgba(59,130,246,0.65), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.35)'
+          : 'none',
+      }}
       title={`Step ${step + 1}`}
     />
   );
@@ -36,22 +46,20 @@ const StepButton: React.FC<StepButtonProps> = ({
 const TrackLabelRow: React.FC<{ name: string; isMuted: boolean; isSolo: boolean; onToggleMute: () => void; onToggleSolo: () => void }> = ({
   name, isMuted, isSolo, onToggleMute, onToggleSolo,
 }) => (
-  <div className="w-36 flex flex-row items-center gap-2 flex-shrink-0 min-h-[40px] py-2">
-    <span className="text-lg font-bold tracking-wider min-w-[5rem]" style={{ color: '#ffffff' }}>
+  <div className="w-[200px] flex items-center justify-end pr-6 flex-shrink-0">
+    <span className="text-lg font-bold tracking-wider text-white">
       {name}
     </span>
-    <div className="flex gap-1">
+    <div className="flex gap-1 ml-2">
       <button
         onClick={onToggleMute}
-        className={`px-2 py-1 rounded text-xs font-medium transition-all border ${isMuted ? 'bg-red-600 border-red-500' : 'bg-[rgba(51,65,85,0.8)] border-[rgba(255,255,255,0.2)] hover:bg-[rgba(71,85,105,0.9)]'}`}
-        style={{ color: '#ffffff' }}
+        className={`px-2 py-1 rounded text-xs font-medium transition-all border text-white ${isMuted ? 'bg-red-600 border-red-500' : 'bg-[rgba(51,65,85,0.8)] border-[rgba(255,255,255,0.2)] hover:bg-[rgba(71,85,105,0.9)]'}`}
       >
         M
       </button>
       <button
         onClick={onToggleSolo}
-        className={`px-2 py-1 rounded text-xs font-medium transition-all border ${isSolo ? 'bg-yellow-600 border-yellow-500' : 'bg-[rgba(51,65,85,0.8)] border-[rgba(255,255,255,0.2)] hover:bg-[rgba(71,85,105,0.9)]'}`}
-        style={{ color: '#ffffff' }}
+        className={`px-2 py-1 rounded text-xs font-medium transition-all border text-white ${isSolo ? 'bg-yellow-600 border-yellow-500' : 'bg-[rgba(51,65,85,0.8)] border-[rgba(255,255,255,0.2)] hover:bg-[rgba(71,85,105,0.9)]'}`}
       >
         S
       </button>
@@ -67,12 +75,12 @@ const SequencerGrid: React.FC<{
   const events = useMIDIStore((state) => state.events);
   return (
     <div
-      className="grid bg-neutral-800"
+      className="grid border-2 border-white/80 bg-black h-full"
       style={{
-        gridTemplateRows: `repeat(${tracks.length}, minmax(40px, 1fr))`,
+        gridTemplateRows: `repeat(${tracks.length}, minmax(0, 1fr))`,
         gridTemplateColumns: 'repeat(16, minmax(0, 1fr))',
-        gap: '1px',
-        padding: '1px',
+        gap: '0',
+        backgroundColor: '#000000',
       }}
     >
       {tracks.map((track) => {
@@ -104,6 +112,7 @@ export const SequencerView: React.FC = () => {
   const toggleSolo = useMIDIStore((state) => state.toggleSolo);
   const toggleStep = useMIDIStore((state) => state.toggleStep);
   const clearAllTracks = useMIDIStore((state) => state.clearAllTracks);
+  const loadPreset = useMIDIStore((state) => state.loadPreset);
 
   if (!tracks || tracks.length === 0) {
     return (
@@ -116,54 +125,64 @@ export const SequencerView: React.FC = () => {
   }
 
   return (
-    <div className="p-6 pl-20 min-h-screen bg-[#050505]">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold tracking-wider uppercase" style={{ color: '#ffffff', fontFamily: "'Bebas Neue', sans-serif" }}>
-          Sequencer
+    <div className="flex-1 min-h-0 bg-[#050505] flex flex-col overflow-hidden">
+      <div className="px-12 pt-2 pb-1 flex-shrink-0">
+        <div className="flex flex-wrap gap-1 pl-[200px]">
+          {RHYTHM_PRESETS.map((preset, index) => (
+            <button
+              key={preset.name}
+              onClick={() => loadPreset(loadPresetEvents(RHYTHM_PRESETS[index]))}
+              className="px-2 py-1 text-[10px] uppercase tracking-wide rounded bg-black text-white border border-white/40 hover:border-white/70 transition-all"
+            >
+              {preset.name}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-between px-12 py-3 flex-shrink-0">
+        <h2 className="text-2xl font-bold tracking-wider uppercase text-white pl-[200px]">
+          SEQUENCER
         </h2>
         <button
           onClick={clearAllTracks}
-          className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-all border border-red-500 shadow-[0_2px_0_0_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.3)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5"
+          className="px-4 py-2 !bg-black !text-white rounded-lg transition-all border border-white/40 hover:border-white/70 active:scale-95"
         >
           Clear All
         </button>
       </div>
 
-      {/* Labels + 9x16 grid with white border around grid */}
-      <div className="relative flex max-w-full overflow-x-auto gap-3">
-        {/* Left: track labels */}
-        <div className="flex flex-col flex-shrink-0">
-          {tracks.map((track) => (
-            <TrackLabelRow
-              key={track.id}
-              name={track.name}
-              isMuted={track.mute}
-              isSolo={track.solo}
-              onToggleMute={() => toggleMute(track.id)}
-              onToggleSolo={() => toggleSolo(track.id)}
-            />
-          ))}
-        </div>
+      <div className="flex-1 min-h-0 px-12 pb-4">
+        <div className="flex h-full">
+          <div className="flex flex-col justify-between flex-shrink-0" style={{ height: '100%' }}>
+            {tracks.map((track) => (
+              <TrackLabelRow
+                key={track.id}
+                name={track.name}
+                isMuted={track.mute}
+                isSolo={track.solo}
+                onToggleMute={() => toggleMute(track.id)}
+                onToggleSolo={() => toggleSolo(track.id)}
+              />
+            ))}
+          </div>
 
-        {/* Right: 9x16 grid with outer white border */}
-        <div className="flex-1 min-w-0 relative border-2 border-white bg-black rounded-sm">
-          <SequencerGrid
-            tracks={tracks}
-            currentStep={currentStep}
-            toggleStep={toggleStep}
-          />
-          {/* Current step vertical bar */}
-          <div
-            className="absolute top-0 bottom-0 pointer-events-none rounded transition-all duration-75"
-            style={{
-              left: `calc(3px + (((100% - 21px) / 16 + 1px) * ${currentStep}))`,
-              width: `calc((100% - 21px) / 16)`,
-              background: 'rgba(56, 189, 248, 0.15)',
-              borderLeft: '2px solid rgba(56, 189, 248, 0.5)',
-              borderRight: '2px solid rgba(56, 189, 248, 0.5)',
-              boxShadow: 'inset 0 0 30px rgba(56, 189, 248, 0.2)',
-            }}
-          />
+          <div className="flex-1 min-w-0 relative h-full">
+            <SequencerGrid
+              tracks={tracks}
+              currentStep={currentStep}
+              toggleStep={toggleStep}
+            />
+            <div
+              className="absolute top-0 bottom-0 pointer-events-none transition-all duration-75"
+              style={{
+                left: `calc((100% / 16) * ${currentStep})`,
+                width: `calc(100% / 16)`,
+                background: 'rgba(56, 189, 248, 0.15)',
+                borderLeft: '2px solid rgba(56, 189, 248, 0.6)',
+                borderRight: '2px solid rgba(56, 189, 248, 0.6)',
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>

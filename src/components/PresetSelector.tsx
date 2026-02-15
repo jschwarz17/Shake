@@ -26,13 +26,15 @@ export const PresetSelector: React.FC = () => {
               hover:shadow-[0_1px_0_0_rgba(0,0,0,0.2),0_2px_4px_rgba(0,0,0,0.3)]
               active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]
               active:translate-y-0.5
+              text-white
             "
           >
-            <h3 className="text-white font-bold text-sm mb-1">{preset.name}</h3>
-            <p className="text-white text-xs">{preset.description}</p>
+            <h3 className="font-bold text-sm mb-1">{preset.name}</h3>
+            <p className="text-xs">{preset.description}</p>
           </button>
         ))}
       </div>
     </div>
   );
+
 };

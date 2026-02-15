@@ -18,15 +18,30 @@ export interface SampleData {
 }
 
 export interface FMSynthParams {
-  carrier: number; // Carrier frequency multiplier
-  modulator: number; // Modulator frequency multiplier
-  modulationIndex: number; // FM depth
-  attack: number;
-  decay: number;
-  sustain: number;
-  release: number;
-  harmonicity: number;
-  volume: number;
+  synthType?: 'advanced' | 'standard';
+  // Common
+  pitch?: number; // Fundamental frequency (MIDI note)
+  volume?: number; // Volume in dB
+  // Advanced only (Kick/Snare)
+  attack?: number; // 0-1: <0.5 noise burst, >0.5 slow attack, 0.5 classic pop
+  decay?: number; // Master decay envelope (seconds)
+  harmonics?: number; // 0-1: oscillators audible (0=1 osc, 1=6 oscs)
+  spread?: number; // 0-1: frequency spacing (0=harmonic, 1=inharmonic)
+  morph?: number; // 0-1: waveform (0=sine, 0.33=tri, 0.66=saw, 1=square)
+  fold?: number; // 0-1: wavefolder amount
+  mode?: 'skin' | 'liquid' | 'metal';
+  // Standard FM (all other pads)
+  harmonicity?: number; // Carrier/modulator ratio
+  modulationIndex?: number; // FM depth
+  fmAttack?: number; // Envelope attack time (seconds)
+  fmDecay?: number; // Envelope decay time (seconds)
+  fmSustain?: number; // Envelope sustain level
+  fmRelease?: number; // Envelope release time (seconds)
+  // Back-compat for existing FM synth utilities
+  carrier?: number;
+  modulator?: number;
+  sustain?: number;
+  release?: number;
 }
 
 export interface Track {

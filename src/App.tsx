@@ -6,11 +6,10 @@ import { PadView } from './components/PadView';
 import { SequencerView } from './components/SequencerView';
 import { FMDrumView } from './components/FMDrumView';
 import { SoundView } from './components/SoundView';
-import { PresetSelector } from './components/PresetSelector';
 
 console.log('App.tsx module loading...');
 
-type View = 'pad' | 'sequencer' | 'fm' | 'sound' | 'presets';
+type View = 'pad' | 'sequencer' | 'fm' | 'sound';
 
 function App() {
   console.log('App component rendering');
@@ -102,15 +101,16 @@ function App() {
     setCurrentStep(0);
   };
 
-  const btnBase = 'px-4 py-2 rounded-lg bg-[rgba(255,255,255,0.05)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] text-xs font-bold uppercase tracking-widest text-[rgba(255,255,255,0.8)] transition-all duration-200 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] hover:text-white hover:border-[rgba(255,255,255,0.3)] active:scale-95 active:bg-[rgba(255,255,255,0.05)]';
-  const btnActive = '!bg-[rgba(59,130,246,0.2)] !border-cyan-400/50 text-cyan-300 shadow-[0_0_15px_rgba(56,189,248,0.3)]';
+  const btnBase = 'px-4 py-2 rounded-lg !bg-black !text-white border border-white/30 text-xs font-bold uppercase tracking-widest transition-all duration-200 hover:!bg-black hover:border-white/60 active:scale-95';
+
+  const btnActive = '!bg-black !text-white !border-white/80 shadow-[0_0_10px_rgba(255,255,255,0.2)]';
 
   return (
     <div className="h-screen w-full bg-[#050505] text-white overflow-hidden flex flex-col">
       {/* Header - fixed height */}
       <header className="h-16 flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] flex items-center">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-4">
-          <h1 className="text-white text-2xl font-bold tracking-wider ml-6">SHAKE</h1>
+          <h1 className="text-white text-2xl font-bold tracking-wider ml-12">SHAKE</h1>
 
           {/* Transport Controls */}
           <div className="flex items-center gap-3">
@@ -163,8 +163,8 @@ function App() {
 
       {/* Navigation - Frosted 3D Glass */}
       <nav className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)]">
-        <div className="max-w-7xl mx-auto flex gap-1 px-4 py-2">
-          {(['pad', 'sequencer', 'presets', 'fm', 'sound'] as View[]).map((view) => (
+        <div className="max-w-7xl mx-auto flex gap-1 px-12 py-2">
+          {(['pad', 'sequencer', 'fm', 'sound'] as View[]).map((view) => (
             <button
               key={view}
               onClick={() => setCurrentView(view)}
@@ -178,14 +178,14 @@ function App() {
 
       {/* Track Selector for Sound view only (FM shows all pads in scroll) */}
       {currentView === 'sound' && (
-        <div className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] px-4 py-3">
+        <div className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] px-12 py-3">
           <div className="max-w-7xl mx-auto flex items-center gap-2">
             <span className="text-white/50 text-xs uppercase tracking-widest mr-2">Select Track:</span>
             {tracks.map((track) => (
               <button
                 key={track.id}
                 onClick={() => setSelectedTrack(track.id)}
-                className={`${btnBase} ${selectedTrack === track.id ? btnActive : ''}`}
+                className={`${btnBase} !bg-black !text-white !border-white/40 ${selectedTrack === track.id ? '!border-cyan-400/70 shadow-[0_0_10px_rgba(34,211,238,0.25)]' : ''}`}
               >
                 {track.name}
               </button>
@@ -195,59 +195,30 @@ function App() {
       )}
 
       {/* Main Content - flex-1 min-h-0, overflow-hidden for pad view */}
-      <main className={`flex-1 min-h-0 flex flex-col ${currentView === 'pad' ? 'overflow-hidden' : 'overflow-auto'}`}>
+      <main className={`flex-1 min-h-0 flex flex-col bg-black ${currentView === 'pad' ? 'overflow-hidden' : 'overflow-auto'}`}>
         {currentView === 'pad' && <PadView />}
         {currentView === 'sequencer' && <SequencerView />}
-        {currentView === 'presets' && <PresetSelector />}
         {currentView === 'fm' && <FMDrumView />}
         {currentView === 'sound' && <SoundView trackId={selectedTrack} />}
       </main>
 
       {/* Footer - fixed height */}
       <footer className="h-16 flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-t border-[rgba(255,255,255,0.1)] flex items-center">
-        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-4 flex-wrap gap-3">
-          <div className="flex gap-3 items-center flex-wrap">
-            <div className="flex flex-col gap-0.5">
-              <label className="text-white/50 text-[10px] uppercase tracking-widest">Global BPM</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min="60"
-                  max="240"
-                  value={bpm}
-                  onChange={(e) => setBPM(parseInt(e.target.value) || 120)}
-                  className="w-32 accent-cyan-500"
-                />
-                <span className="text-white font-mono w-12 text-sm">{bpm}</span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-white/50 text-[10px] uppercase tracking-widest">Swing</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={globalSwing}
-                  onChange={(e) => setGlobalSwing(parseInt(e.target.value) || 50)}
-                  className="w-32 accent-cyan-500"
-                />
-                <span className="text-white font-mono w-8 text-sm">{globalSwing}</span>
-              </div>
-            </div>
+        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-12 flex-wrap gap-3">
+          <div className="flex gap-3 items-center">
             <button
               onClick={() => setIsRecording(!isRecording)}
               className={`${btnBase} ${isRecording ? 'text-red-400 border-red-400/50 animate-pulse shadow-[0_0_15px_rgba(248,113,113,0.3)]' : ''}`}
             >
-              Rec
+              REC
             </button>
             <button className={btnBase}>
-              Save
+              SAVE
             </button>
           </div>
 
           <div className="flex gap-2 items-center">
-            <button className={btnBase}>Master</button>
+            <button className={btnBase}>MASTER</button>
             <div className="flex items-center gap-2">
               <span className="text-white/50 text-[10px] uppercase tracking-widest">Master Volume</span>
               <input

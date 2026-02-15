@@ -2,12 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  button {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  }
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #000000;
+  color: #ffffff;
 }
 
 html {
@@ -16,4 +25,18 @@ html {
 
 #root {
   background-color: #000000;
+}
+
+/* Force all app text to white for visibility */
+body,
+body * {
+  color: #ffffff;
+}
+
+/* Force top-page controls to black buttons with white text */
+header button,
+nav button {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
 }

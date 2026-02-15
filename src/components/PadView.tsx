@@ -43,10 +43,10 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, onToggleMode, onHoldSt
         cursor-pointer
       `}
     >
-      <span className="text-2xl font-bold tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" style={{ color: '#ffffff' }}>
+      <span className="text-2xl font-bold tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-white">
         {name}
       </span>
-      <span className="text-[0.65rem] uppercase tracking-[0.15em] mt-1" style={{ color: '#ffffff' }}>
+      <span className="text-[0.65rem] uppercase tracking-[0.15em] mt-1 text-white">
         {mode}
       </span>
       <button

@@ -1,11 +1,13 @@
 import * as Tone from 'tone';
 import type { MIDIEvent, Track } from './types';
 import { calculateEventTimestamp } from './SwingCalculator';
+import { AdvancedDrumSynth } from '../synth/AdvancedDrumSynth';
 
 class ToneEngine {
   private trackParts: (Tone.Part | null)[] = Array(9).fill(null);
   private players: Map<number, Tone.Player[]> = new Map();
-  private fmSynths: Map<number, Tone.FMSynth> = new Map();
+  private drumSynths: Map<number, AdvancedDrumSynth> = new Map();
+  private standardSynths: Map<number, Tone.FMSynth> = new Map();
   private isInitialized = false;
   private stepCallback?: (step: number) => void;
   private stepScheduleId?: number;
@@ -34,8 +36,15 @@ class ToneEngine {
    */
   initializeFMSynths(tracks: Track[]) {
     tracks.forEach((track) => {
-      if (track.fmParams && !this.fmSynths.has(track.id)) {
-        this.createFMSynth(track.id, track.fmParams);
+      if (!track.fmParams) return;
+      if (track.fmParams.synthType === 'advanced') {
+        if (!this.drumSynths.has(track.id)) {
+          this.createDrumSynth(track.id, track.fmParams);
+        }
+      } else {
+        if (!this.standardSynths.has(track.id)) {
+          this.createStandardFMSynth(track.id, track.fmParams);
+        }
       }
     });
   }
@@ -148,34 +157,72 @@ class ToneEngine {
   }
 
   /**
-   * Create FM synth for a track
+   * Create advanced drum synth for a track (Kick/Snare)
    */
-  createFMSynth(trackId: number, params: any) {
+  createDrumSynth(trackId: number, params: any) {
+    const synth = new AdvancedDrumSynth(params);
+    this.drumSynths.set(trackId, synth);
+  }
+
+  /**
+   * Create standard FM synth for a track
+   */
+  createStandardFMSynth(trackId: number, params: any) {
     const synth = new Tone.FMSynth({
       harmonicity: params.harmonicity || 3,
       modulationIndex: params.modulationIndex || 10,
-      oscillator: {
-        type: 'sine',
-      },
+      oscillator: { type: 'sine' },
       envelope: {
-        attack: params.attack || 0.001,
-        decay: params.decay || 0.2,
-        sustain: params.sustain || 0,
-        release: params.release || 0.3,
+        attack: params.fmAttack || 0.001,
+        decay: params.fmDecay || 0.2,
+        sustain: params.fmSustain || 0,
+        release: params.fmRelease || 0.3,
       },
-      modulation: {
-        type: 'sine',
-      },
+      modulation: { type: 'sine' },
       modulationEnvelope: {
-        attack: 0.001,
-        decay: 0.2,
-        sustain: 0,
-        release: 0.3,
+        attack: params.fmAttack || 0.001,
+        decay: params.fmDecay || 0.2,
+        sustain: params.fmSustain || 0,
+        release: params.fmRelease || 0.3,
       },
       volume: params.volume || -10,
     }).toDestination();
-    
-    this.fmSynths.set(trackId, synth);
+    this.standardSynths.set(trackId, synth);
+  }
+
+  /**
+   * Update synth parameters in real-time
+   */
+  updateFMSynthParams(trackId: number, params: Partial<any>) {
+    // Try advanced synth first
+    const advSynth = this.drumSynths.get(trackId);
+    if (advSynth) {
+      advSynth.updateParams(params);
+      return;
+    }
+    // Try standard FM synth
+    const stdSynth = this.standardSynths.get(trackId);
+    if (!stdSynth) return;
+
+    if (params.harmonicity !== undefined) stdSynth.harmonicity.value = params.harmonicity;
+    if (params.modulationIndex !== undefined) stdSynth.modulationIndex.value = params.modulationIndex;
+    if (params.fmAttack !== undefined) {
+      stdSynth.envelope.attack = params.fmAttack;
+      stdSynth.modulationEnvelope.attack = params.fmAttack;
+    }
+    if (params.fmDecay !== undefined) {
+      stdSynth.envelope.decay = params.fmDecay;
+      stdSynth.modulationEnvelope.decay = params.fmDecay;
+    }
+    if (params.fmSustain !== undefined) {
+      stdSynth.envelope.sustain = params.fmSustain;
+      stdSynth.modulationEnvelope.sustain = params.fmSustain;
+    }
+    if (params.fmRelease !== undefined) {
+      stdSynth.envelope.release = params.fmRelease;
+      stdSynth.modulationEnvelope.release = params.fmRelease;
+    }
+    if (params.volume !== undefined) stdSynth.volume.value = params.volume;
   }
 
   /**
@@ -278,17 +325,21 @@ class ToneEngine {
     time: number,
     trackVolume: number
   ): void {
-    const synth = this.fmSynths.get(trackId);
-    if (!synth) {
-      // Create default synth if not exists
-      this.createFMSynth(trackId, {});
-      return this.playFMSynth(trackId, event, time, trackVolume);
+    // Try advanced synth (Kick/Snare)
+    const advSynth = this.drumSynths.get(trackId);
+    if (advSynth) {
+      advSynth.trigger(event.note, event.velocity, time);
+      return;
     }
 
-    // Convert MIDI note to frequency
+    // Standard FM synth
+    let synth = this.standardSynths.get(trackId);
+    if (!synth) {
+      this.createStandardFMSynth(trackId, {});
+      synth = this.standardSynths.get(trackId)!;
+    }
+
     const frequency = Tone.Frequency(event.note, 'midi').toFrequency();
-    
-    // Trigger synth
     synth.volume.value = Tone.gainToDb((event.velocity / 127) * trackVolume);
     synth.triggerAttackRelease(frequency, event.duration || 0.1, time);
   }
@@ -333,11 +384,13 @@ class ToneEngine {
     });
     
     // Dispose all synths
-    this.fmSynths.forEach((synth) => synth.dispose());
+    this.drumSynths.forEach((synth) => synth.dispose());
+    this.standardSynths.forEach((synth) => synth.dispose());
     
     // Clear maps
     this.players.clear();
-    this.fmSynths.clear();
+    this.drumSynths.clear();
+    this.standardSynths.clear();
     this.trackParts = Array(9).fill(null);
     
     this.isInitialized = false;
