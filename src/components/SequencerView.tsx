@@ -19,11 +19,12 @@ const StepButton: React.FC<StepButtonProps> = ({
     <button
       onClick={onToggle}
       className={`
-        w-full aspect-square rounded transition-all min-h-[40px]
+        w-full rounded transition-all
         ${isActive ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'}
-        ${isCurrent ? 'ring-2 ring-white' : ''}
+        ${isCurrent ? 'ring-2 ring-blue-400' : ''}
         ${step % 4 === 0 ? 'border-l-2 border-gray-600' : ''}
       `}
+      style={{ height: '48px', minHeight: '48px' }}
     />
   );
 };
@@ -52,9 +53,9 @@ const TrackRow: React.FC<TrackRowProps> = ({
   const activeSteps = new Set(events.map((e) => e.step));
 
   return (
-    <div className="flex items-center gap-2 mb-2">
+    <div className="flex items-center gap-3 mb-3">
       {/* Track name and controls */}
-      <div className="w-32 flex flex-col gap-1">
+      <div className="w-32 flex flex-col gap-1 flex-shrink-0">
         <span className="text-white text-sm font-medium">{name}</span>
         <div className="flex gap-1">
           <button
@@ -80,7 +81,7 @@ const TrackRow: React.FC<TrackRowProps> = ({
 
       {/* 16 step buttons */}
       <div 
-        className="flex-1 grid gap-1"
+        className="flex-1 grid gap-1 min-w-0"
         style={{ gridTemplateColumns: 'repeat(16, minmax(0, 1fr))' }}
       >
         {Array.from({ length: 16 }, (_, step) => (
@@ -105,8 +106,8 @@ export const SequencerView: React.FC = () => {
   const clearAllTracks = useMIDIStore((state) => state.clearAllTracks);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="p-6 bg-black min-h-screen">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-white text-2xl font-bold">Sequencer</h2>
         <button
           onClick={clearAllTracks}
@@ -116,7 +117,7 @@ export const SequencerView: React.FC = () => {
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3 max-w-full overflow-x-auto">
         {tracks.map((track) => (
           <TrackRow
             key={track.id}
