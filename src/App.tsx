@@ -9,9 +9,13 @@ import { FMDrumView } from './components/FMDrumView';
 import { SoundView } from './components/SoundView';
 import { PresetSelector } from './components/PresetSelector';
 
+console.log('App.tsx module loading...');
+
 type View = 'pad' | 'sequencer' | 'fm' | 'sound' | 'presets';
 
 function App() {
+  console.log('App component rendering');
+  
   const [currentView, setCurrentView] = React.useState<View>('pad');
   const [selectedTrack, setSelectedTrack] = React.useState(0);
   const [isInitialized, setIsInitialized] = React.useState(false);
