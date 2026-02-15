@@ -2,165 +2,159 @@ import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
 import type { FMSynthParams } from '../engine/types';
 
-interface FMDrumViewProps {
-  trackId: number;
-}
+const FMSlider: React.FC<{
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  suffix?: string;
+  onChange: (value: number) => void;
+}> = ({ label, value, min, max, step, suffix = '', onChange }) => (
+  <div className="mb-4">
+    <label className="block text-sm font-medium mb-1" style={{ color: '#ffffff' }}>{label}</label>
+    <div className="flex items-center gap-2">
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="flex-1 accent-cyan-500"
+      />
+      <span className="text-sm font-mono w-16" style={{ color: '#ffffff' }}>{value}{suffix}</span>
+    </div>
+  </div>
+);
 
-export const FMDrumView: React.FC<FMDrumViewProps> = ({ trackId }) => {
-  const track = useMIDIStore((state) => state.tracks[trackId]);
+interface FMDrumViewProps {}
+
+export const FMDrumView: React.FC<FMDrumViewProps> = () => {
+  const [selectedTrackId, setSelectedTrackId] = React.useState(0);
+  const tracks = useMIDIStore((state) => state.tracks);
   const updateTrack = useMIDIStore((state) => state.updateTrack);
+  const toggleTrackMode = useMIDIStore((state) => state.toggleTrackMode);
 
-  if (!track.fmParams) return null;
-
-  const updateParam = (param: keyof FMSynthParams, value: number) => {
+  const updateParam = (trackId: number, param: keyof FMSynthParams, value: number) => {
+    const track = tracks[trackId];
+    if (!track?.fmParams) return;
     updateTrack(trackId, {
-      fmParams: {
-        ...track.fmParams!,
-        [param]: value,
-      },
+      fmParams: { ...track.fmParams, [param]: value },
     });
   };
 
-  const params = track.fmParams;
+  const fmTracks = tracks.filter((t) => t.fmParams);
+  const track = fmTracks.find((t) => t.id === selectedTrackId) ?? fmTracks[0];
 
   return (
-    <div className="p-6">
-      <h2 className="text-white text-2xl font-bold mb-4">
-        FM Synth - {track.name}
-      </h2>
-
-      <div className="grid grid-cols-2 gap-6">
-        {/* Harmonicity */}
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-2">
-            Harmonicity
-          </label>
-          <input
-            type="range"
-            min="0.5"
-            max="8"
-            step="0.1"
-            value={params.harmonicity}
-            onChange={(e) => updateParam('harmonicity', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <span className="text-blue-400 text-sm">{params.harmonicity.toFixed(1)}</span>
-        </div>
-
-        {/* Modulation Index */}
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-2">
-            Modulation Index
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="30"
-            step="0.5"
-            value={params.modulationIndex}
-            onChange={(e) => updateParam('modulationIndex', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <span className="text-blue-400 text-sm">{params.modulationIndex.toFixed(1)}</span>
-        </div>
-
-        {/* Attack */}
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-2">
-            Attack
-          </label>
-          <input
-            type="range"
-            min="0.001"
-            max="1"
-            step="0.001"
-            value={params.attack}
-            onChange={(e) => updateParam('attack', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <span className="text-blue-400 text-sm">{params.attack.toFixed(3)}s</span>
-        </div>
-
-        {/* Decay */}
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-2">
-            Decay
-          </label>
-          <input
-            type="range"
-            min="0.001"
-            max="2"
-            step="0.001"
-            value={params.decay}
-            onChange={(e) => updateParam('decay', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <span className="text-blue-400 text-sm">{params.decay.toFixed(3)}s</span>
-        </div>
-
-        {/* Sustain */}
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-2">
-            Sustain
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={params.sustain}
-            onChange={(e) => updateParam('sustain', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <span className="text-blue-400 text-sm">{params.sustain.toFixed(2)}</span>
-        </div>
-
-        {/* Release */}
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-2">
-            Release
-          </label>
-          <input
-            type="range"
-            min="0.001"
-            max="3"
-            step="0.001"
-            value={params.release}
-            onChange={(e) => updateParam('release', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <span className="text-blue-400 text-sm">{params.release.toFixed(3)}s</span>
-        </div>
-
-        {/* Volume */}
-        <div>
-          <label className="block text-gray-300 text-sm font-medium mb-2">
-            Volume (dB)
-          </label>
-          <input
-            type="range"
-            min="-40"
-            max="0"
-            step="1"
-            value={params.volume}
-            onChange={(e) => updateParam('volume', parseFloat(e.target.value))}
-            className="w-full"
-          />
-          <span className="text-blue-400 text-sm">{params.volume}dB</span>
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Pad selector scroll bar at top */}
+      <div className="flex-shrink-0 p-4 border-b border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)]">
+        <h2 className="text-xl font-bold mb-3" style={{ color: '#ffffff' }}>FM Synth Settings</h2>
+        <div className="overflow-x-auto pb-2 flex gap-2">
+          {fmTracks.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSelectedTrackId(t.id)}
+              className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedTrackId === t.id
+                  ? 'bg-cyan-500/30 border border-cyan-400/50'
+                  : 'bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.12)]'
+              }`}
+              style={{ color: '#ffffff' }}
+            >
+              {t.name}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="mt-6 bg-gray-900 p-4 rounded-lg">
-        <h3 className="text-white font-medium mb-2">FM Synthesis Guide</h3>
-        <ul className="text-gray-400 text-sm space-y-1">
-          <li><strong>Harmonicity:</strong> Ratio between carrier and modulator frequencies</li>
-          <li><strong>Modulation Index:</strong> Depth of frequency modulation (brightness)</li>
-          <li><strong>Attack:</strong> How quickly the sound reaches full volume</li>
-          <li><strong>Decay:</strong> How quickly the sound drops to sustain level</li>
-          <li><strong>Sustain:</strong> Level held while note is active</li>
-          <li><strong>Release:</strong> How quickly the sound fades after note ends</li>
-        </ul>
-      </div>
+      {/* Single pad settings */}
+      {track && (
+        <div className="flex-1 overflow-auto p-6">
+          <section className="p-4 rounded-lg bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)]">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold" style={{ color: '#ffffff' }}>{track.name}</h3>
+              <button
+                type="button"
+                onClick={() => toggleTrackMode(track.id)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] text-xs font-medium hover:bg-[rgba(255,255,255,0.12)] transition-colors"
+                style={{ color: '#ffffff' }}
+              >
+                <span className="w-10 h-5 rounded-full border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.1)] flex items-start pt-0.5">
+                  <span className={`w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.6)] transition-all duration-200 ${track.mode === 'fm' ? 'ml-0.5' : 'ml-5'}`} />
+                </span>
+                {track.mode === 'fm' ? 'FM' : 'Sample'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+              <FMSlider
+                label="Harmonicity"
+                value={track.fmParams!.harmonicity}
+                min={0.5}
+                max={8}
+                step={0.1}
+                onChange={(v) => updateParam(track.id, 'harmonicity', v)}
+              />
+              <FMSlider
+                label="Modulation Index"
+                value={track.fmParams!.modulationIndex}
+                min={0}
+                max={30}
+                step={0.5}
+                onChange={(v) => updateParam(track.id, 'modulationIndex', v)}
+              />
+              <FMSlider
+                label="Attack (s)"
+                value={track.fmParams!.attack}
+                min={0.001}
+                max={1}
+                step={0.001}
+                suffix="s"
+                onChange={(v) => updateParam(track.id, 'attack', v)}
+              />
+              <FMSlider
+                label="Decay (s)"
+                value={track.fmParams!.decay}
+                min={0.001}
+                max={2}
+                step={0.001}
+                suffix="s"
+                onChange={(v) => updateParam(track.id, 'decay', v)}
+              />
+              <FMSlider
+                label="Sustain"
+                value={track.fmParams!.sustain}
+                min={0}
+                max={1}
+                step={0.01}
+                onChange={(v) => updateParam(track.id, 'sustain', v)}
+              />
+              <FMSlider
+                label="Release (s)"
+                value={track.fmParams!.release}
+                min={0.001}
+                max={3}
+                step={0.001}
+                suffix="s"
+                onChange={(v) => updateParam(track.id, 'release', v)}
+              />
+              <FMSlider
+                label="Volume (dB)"
+                value={track.fmParams!.volume}
+                min={-40}
+                max={0}
+                step={1}
+                suffix="dB"
+                onChange={(v) => updateParam(track.id, 'volume', v)}
+              />
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };
