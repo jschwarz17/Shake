@@ -14,17 +14,21 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, isActive }) => {
   return (
     <button
       onClick={onTrigger}
+      style={{
+        background: 'linear-gradient(to bottom right, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))',
+        backdropFilter: 'blur(12px)',
+        boxShadow: isActive 
+          ? '0 4px 16px 0 rgba(0,0,0,0.8), inset 0 0 30px rgba(56,189,248,0.4)'
+          : '0 8px 32px 0 rgba(0,0,0,0.6), inset 0 0 30px rgba(56,189,248,0.15)',
+      }}
       className={`
         aspect-square rounded-2xl
-        bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-md
         border border-white/10
-        shadow-[0_8px_32px_0_rgba(0,0,0,0.6),_inset_0_0_30px_rgba(56,189,248,0.15)]
         flex flex-col items-center justify-center
         transition-all duration-150
-        hover:from-slate-700/50 hover:to-slate-800/70 hover:border-cyan-400/30
-        hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.6),_inset_0_0_40px_rgba(56,189,248,0.25)]
-        active:scale-[0.98] active:shadow-[0_4px_16px_0_rgba(0,0,0,0.8),_inset_0_0_20px_rgba(0,0,0,0.5)]
-        ${isActive ? 'scale-[0.98] shadow-[0_4px_16px_0_rgba(0,0,0,0.8),_inset_0_0_30px_rgba(56,189,248,0.4)]' : ''}
+        hover:border-cyan-400/30
+        active:scale-[0.98]
+        ${isActive ? 'scale-[0.98]' : ''}
       `}
     >
       <span className="text-2xl font-bold tracking-widest text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.3)]">
@@ -33,7 +37,13 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, isActive }) => {
       <span className="text-xs text-cyan-300/80 uppercase mt-2 tracking-wider font-medium">
         {mode}
       </span>
-      <div className="w-10 h-1 mx-auto mt-5 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_12px_rgba(56,189,248,1),_0_0_20px_rgba(56,189,248,0.6)]" />
+      <div 
+        className="w-10 h-1 mx-auto mt-5 rounded-full"
+        style={{
+          background: 'linear-gradient(to right, rgb(56, 189, 248), rgb(59, 130, 246))',
+          boxShadow: '0 0 12px rgba(56,189,248,1), 0 0 20px rgba(56,189,248,0.6)'
+        }}
+      />
     </button>
   );
 };
