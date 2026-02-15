@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
 import { toneEngine } from '../engine/ToneEngine';
+import { TRACK_ID_TO_SAMPLE_URL } from '../engine/defaultSamples';
 
 interface PadProps {
   trackId: number;
@@ -106,9 +107,35 @@ export const PadView: React.FC = () => {
     };
   }, [updateTrack]);
 
-  const handleToggleMode = (trackId: number) => (e: React.MouseEvent) => {
+  const handleToggleMode = (trackId: number) => async (e: React.MouseEvent) => {
     e.stopPropagation();
+    const track = tracks[trackId];
+    if (!track) return;
+    const switchingToSample = track.mode === 'fm';
     toggleTrackMode(trackId);
+
+    if (!switchingToSample) return;
+
+    const url = track.sample?.url || TRACK_ID_TO_SAMPLE_URL[trackId];
+    if (!url) return;
+
+    try {
+      await toneEngine.initialize();
+      await toneEngine.loadSample(trackId, url);
+      const loadedBuffer = toneEngine.getSampleBuffer(trackId);
+      const duration = loadedBuffer?.duration ?? track.sample?.duration ?? 1;
+      updateTrack(trackId, {
+        sample: {
+          name: track.sample?.name ?? `Default ${track.name}`,
+          buffer: null,
+          url,
+          startTime: 0,
+          duration,
+        },
+      });
+    } catch (error) {
+      console.error(`Failed to load sample for track ${trackId}`, error);
+    }
   };
 
   const handleHoldStart = (trackId: number) => () => {

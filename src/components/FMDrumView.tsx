@@ -58,7 +58,7 @@ export const FMDrumView: React.FC = () => {
       {/* Pad selector */}
       <div className="flex-shrink-0 p-3 border-b border-white/10 bg-white/[0.03]">
         <h2 className="text-lg font-bold mb-2 text-white">FM Synth Settings</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {fmTracks.map((t) => (
             <button
               key={t.id}
@@ -78,11 +78,11 @@ export const FMDrumView: React.FC = () => {
 
       {/* Controls */}
       {track && (
-        <div className="flex-1 min-h-0 p-4 flex flex-col">
-          <section className="flex-1 min-h-0 p-4 rounded-lg bg-white/[0.03] border border-white/10 flex flex-col">
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
+          <section className="flex-1 min-h-0 p-3 sm:p-4 rounded-lg bg-white/[0.03] border border-white/10 flex flex-col">
             {/* Header row */}
-            <div className="flex items-center justify-between mb-3 flex-shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between mb-3 flex-shrink-0 gap-3 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
                 <h3 className="text-lg font-bold text-white">{track.name}</h3>
                 <span className="text-[10px] uppercase tracking-wider text-white/40 bg-white/10 px-2 py-0.5 rounded">
                   {isAdvanced ? '6-Osc Advanced' : 'Standard FM'}
@@ -102,7 +102,7 @@ export const FMDrumView: React.FC = () => {
 
             {/* Advanced mode selector (Kick/Snare only) */}
             {isAdvanced && (
-              <div className="flex gap-2 mb-3 flex-shrink-0">
+              <div className="flex gap-2 mb-3 flex-shrink-0 flex-wrap">
                 {(['skin', 'liquid', 'metal'] as const).map((mode) => (
                   <button
                     key={mode}
@@ -125,7 +125,7 @@ export const FMDrumView: React.FC = () => {
             )}
 
             {/* Sliders grid */}
-            <div className="flex-1 min-h-0 grid grid-cols-2 gap-x-4 gap-y-2 content-start">
+            <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 content-start">
               {/* Common: Pitch and Volume */}
               <FMSlider label="Pitch" description="MIDI note" value={track.fmParams!.pitch ?? track.midiNote} min={24} max={96} step={1} onChange={(v) => updateParam(track.id, 'pitch', v)} />
               <FMSlider label="Volume" description="output level" value={track.fmParams!.volume ?? -10} min={-40} max={0} step={1} suffix="dB" onChange={(v) => updateParam(track.id, 'volume', v)} />

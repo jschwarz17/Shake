@@ -75,7 +75,7 @@ class ToneEngine {
       duration: 0.1,
     };
     if (track.mode === 'sample') {
-      this.playSample(trackId, event, now, track.volume);
+      this.playSample(trackId, event, now, track);
     } else if (track.mode === 'fm') {
       this.initializeFMSynths([track]);
       this.playFMSynth(trackId, event, now, track.volume);
@@ -136,18 +136,31 @@ class ToneEngine {
   }
 
   /**
+   * Get the AudioBuffer for a track's loaded sample.
+   * Returns null when no sample is loaded or buffer is not ready.
+   */
+  getSampleBuffer(trackId: number): AudioBuffer | null {
+    const players = this.players.get(trackId);
+    if (!players?.length) return null;
+    const player = players[0];
+    const toneBuffer = player.buffer;
+    if (!toneBuffer?.loaded) return null;
+    return toneBuffer.get() ?? null;
+  }
+
+  /**
    * Load a sample for a track
    */
   async loadSample(trackId: number, url: string): Promise<void> {
     try {
       console.log(`Loading sample for track ${trackId} from ${url}`);
+      const existingPlayers = this.players.get(trackId);
+      if (existingPlayers?.length) {
+        existingPlayers.forEach((p) => p.dispose());
+      }
       const player = new Tone.Player(url).toDestination();
       await player.load(url);
-      
-      if (!this.players.has(trackId)) {
-        this.players.set(trackId, []);
-      }
-      this.players.get(trackId)!.push(player);
+      this.players.set(trackId, [player]);
       
       console.log(`✓ Sample loaded successfully for track ${trackId}. Buffer duration: ${player.buffer.duration}s`);
     } catch (error) {
@@ -232,6 +245,7 @@ class ToneEngine {
     trackId: number,
     track: Track,
     events: MIDIEvent[],
+    bpm: number,
     globalSwing: number,
     allTracks: Track[]
   ) {
@@ -256,10 +270,11 @@ class ToneEngine {
     const eventsWithTimestamps = trackEvents.map((event) => {
       const timestamp = calculateEventTimestamp(
         event.step,
+        bpm,
         globalSwing,
         track.swing
       );
-      return [timestamp, event] as [string, MIDIEvent];
+      return [timestamp, event] as [number, MIDIEvent];
     });
 
     // Create new Tone.Part
@@ -270,7 +285,7 @@ class ToneEngine {
       
       // Play sound
       if (track.mode === 'sample') {
-        this.playSample(trackId, event, time, track.volume);
+        this.playSample(trackId, event, time, track);
       } else if (track.mode === 'fm') {
         this.playFMSynth(trackId, event, time, track.volume);
       }
@@ -290,12 +305,12 @@ class ToneEngine {
     trackId: number,
     event: MIDIEvent,
     time: number,
-    trackVolume: number
+    track: Track
   ) {
     const players = this.players.get(trackId);
     if (!players || players.length === 0) {
       console.warn(`No sample for track ${trackId}, using FM fallback`);
-      this.playFMSynth(trackId, event, time, trackVolume);
+      this.playFMSynth(trackId, event, time, track.volume);
       return;
     }
 
@@ -307,8 +322,12 @@ class ToneEngine {
     }
 
     const newPlayer = new Tone.Player(player.buffer).toDestination();
-    newPlayer.volume.value = Tone.gainToDb((event.velocity / 127) * trackVolume);
-    newPlayer.start(time);
+    newPlayer.volume.value = Tone.gainToDb((event.velocity / 127) * track.volume);
+    const startTime = Math.max(0, track.sample?.startTime ?? 0);
+    const availableDuration = Math.max(0.01, player.buffer.duration - startTime);
+    const requestedDuration = track.sample?.duration ?? availableDuration;
+    const duration = Math.max(0.01, Math.min(availableDuration, requestedDuration));
+    newPlayer.start(time, startTime, duration);
     
     // Dispose after playback
     newPlayer.onstop = () => {
@@ -359,7 +378,7 @@ class ToneEngine {
     this.initializeFMSynths(tracks);
     
     tracks.forEach((track) => {
-      this.updateTrackSequence(track.id, track, events, globalSwing, tracks);
+      this.updateTrackSequence(track.id, track, events, bpm, globalSwing, tracks);
     });
   }
 

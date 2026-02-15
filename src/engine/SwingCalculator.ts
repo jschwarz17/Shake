@@ -1,57 +1,55 @@
 /**
  * Calculate swing offset for a given step
  * @param step - The step number (0-15)
+ * @param bpm - Current BPM
  * @param globalSwing - Global swing amount (0-100, 50 = no swing)
  * @param trackSwing - Per-track swing amount (0-100)
- * @returns Swing offset as a fraction of step duration
+ * @returns Absolute timestamp in seconds from loop start
  */
 export function calculateSwingOffset(
   step: number,
+  bpm: number,
   globalSwing: number,
   trackSwing: number
 ): number {
-  // Only apply swing to odd-numbered steps (1, 3, 5, 7, 9, 11, 13, 15)
-  if (step % 2 === 0) return 0;
-  
-  // Combine global and track swing (average them)
-  const combinedSwing = (globalSwing + trackSwing) / 2;
-  
-  // Convert to -1 to +1 range (50 = 0)
-  const swingAmount = (combinedSwing - 50) / 50;
-  
-  // Maximum offset is 50% of step duration
-  const maxOffset = 0.5;
-  
-  return swingAmount * maxOffset;
+  // Per-track swing overrides global unless exactly centered.
+  const effectiveSwing = trackSwing === 50 ? globalSwing : trackSwing;
+
+  // 8th-note duration in seconds.
+  const quarterNoteDuration = 60 / bpm;
+  const eighthNoteDuration = quarterNoteDuration / 2;
+
+  // Centered at 50 => straight timing (half of an 8th note between pair steps).
+  const delayAmount = (effectiveSwing / 100) * eighthNoteDuration;
+
+  // Steps are grouped in 8th-note pairs:
+  // step 0 = odd 16th (1st of pair), step 1 = even 16th (2nd of pair), etc.
+  const pairIndex = Math.floor(step / 2);
+  const oddStepTime = pairIndex * eighthNoteDuration;
+
+  // Only even-numbered 16th steps (2,4,6...) i.e. 0-based odd steps get delayed.
+  if (step % 2 === 1) {
+    return oddStepTime + delayAmount;
+  }
+
+  return oddStepTime;
 }
 
 /**
  * Calculate the actual timestamp for a MIDI event with swing applied
  * @param step - The step number (0-15)
+ * @param bpm - Current BPM
  * @param globalSwing - Global swing amount
  * @param trackSwing - Per-track swing amount
- * @returns Timestamp in Tone.js time format (e.g., "0:0:0")
+ * @returns Timestamp in seconds from loop start
  */
 export function calculateEventTimestamp(
   step: number,
+  bpm: number,
   globalSwing: number,
   trackSwing: number
-): string {
-  // Calculate base position (16th notes)
-  const sixteenthNote = step;
-  
-  // Calculate swing offset
-  const swingOffset = calculateSwingOffset(step, globalSwing, trackSwing);
-  
-  // Apply swing offset to the 16th note position
-  const adjustedSixteenths = sixteenthNote + swingOffset;
-  
-  // Convert to Tone.js format: "bars:quarters:sixteenths"
-  const bars = 0;
-  const quarters = Math.floor(adjustedSixteenths / 4);
-  const sixteenths = adjustedSixteenths % 4;
-  
-  return `${bars}:${quarters}:${sixteenths}`;
+): number {
+  return calculateSwingOffset(step, bpm, globalSwing, trackSwing);
 }
 
 /**
@@ -59,6 +57,7 @@ export function calculateEventTimestamp(
  */
 export function calculateEventTimestamps(
   events: any[],
+  bpm: number,
   globalSwing: number,
   trackSwing: { [trackId: number]: number }
 ) {
@@ -66,6 +65,7 @@ export function calculateEventTimestamps(
     ...event,
     timestamp: calculateEventTimestamp(
       event.step,
+      bpm,
       globalSwing,
       trackSwing[event.trackId] || 0
     ),

@@ -16,27 +16,17 @@ const StepButton: React.FC<StepButtonProps> = ({
   isCurrent,
   onToggle,
 }) => {
-  const isGroupBoundary = step === 3 || step === 7 || step === 11;
-
   return (
     <button
       onClick={onToggle}
       className={`
-        w-full h-full transition-colors
+        w-full h-full transition-colors !rounded-none
+        !border-[0.5px] !border-white/45
+        ${isActive
+          ? '!bg-[linear-gradient(145deg,#5f9dff_0%,#3b82f6_45%,#1d4ed8_100%)] !shadow-[0_0_14px_rgba(59,130,246,0.65),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-3px_8px_rgba(0,0,0,0.35)]'
+          : '!bg-black !shadow-none'}
         ${isCurrent ? 'ring-2 ring-blue-400 ring-offset-1 ring-offset-[#050505]' : ''}
       `}
-      style={{
-        background: isActive
-          ? 'linear-gradient(145deg, #5f9dff 0%, #3b82f6 45%, #1d4ed8 100%)'
-          : '#000000',
-        border: `0.5px solid ${isActive ? 'rgba(147,197,253,0.95)' : 'rgba(255,255,255,0.45)'}`,
-        borderRight: isGroupBoundary
-          ? `2px solid ${isActive ? 'rgba(147,197,253,0.95)' : 'rgba(255,255,255,0.75)'}`
-          : undefined,
-        boxShadow: isActive
-          ? '0 0 14px rgba(59,130,246,0.65), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -3px 8px rgba(0,0,0,0.35)'
-          : 'none',
-      }}
       title={`Step ${step + 1}`}
     />
   );
@@ -46,8 +36,8 @@ const StepButton: React.FC<StepButtonProps> = ({
 const TrackLabelRow: React.FC<{ name: string; isMuted: boolean; isSolo: boolean; onToggleMute: () => void; onToggleSolo: () => void }> = ({
   name, isMuted, isSolo, onToggleMute, onToggleSolo,
 }) => (
-  <div className="w-[200px] flex items-center justify-end pr-6 flex-shrink-0">
-    <span className="text-lg font-bold tracking-wider text-white">
+  <div className="w-[120px] sm:w-[200px] flex items-center justify-end pr-2 sm:pr-6 flex-shrink-0">
+    <span className="text-base sm:text-lg font-bold tracking-wider text-white">
       {name}
     </span>
     <div className="flex gap-1 ml-2">
@@ -126,8 +116,8 @@ export const SequencerView: React.FC = () => {
 
   return (
     <div className="flex-1 min-h-0 bg-[#050505] flex flex-col overflow-hidden">
-      <div className="px-12 pt-2 pb-1 flex-shrink-0">
-        <div className="flex flex-wrap gap-1 pl-[200px]">
+      <div className="px-3 sm:px-12 pt-2 pb-1 flex-shrink-0">
+        <div className="flex flex-wrap gap-1 pl-[120px] sm:pl-[200px]">
           {RHYTHM_PRESETS.map((preset, index) => (
             <button
               key={preset.name}
@@ -139,8 +129,8 @@ export const SequencerView: React.FC = () => {
           ))}
         </div>
       </div>
-      <div className="flex items-center justify-between px-12 py-3 flex-shrink-0">
-        <h2 className="text-2xl font-bold tracking-wider uppercase text-white pl-[200px]">
+      <div className="flex items-center justify-between px-3 sm:px-12 py-3 flex-shrink-0 gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-wider uppercase text-white pl-[120px] sm:pl-[200px]">
           SEQUENCER
         </h2>
         <button
@@ -151,7 +141,7 @@ export const SequencerView: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 px-12 pb-4">
+      <div className="flex-1 min-h-0 px-3 sm:px-12 pb-4">
         <div className="flex h-full">
           <div className="flex flex-col justify-between flex-shrink-0" style={{ height: '100%' }}>
             {tracks.map((track) => (
@@ -173,7 +163,19 @@ export const SequencerView: React.FC = () => {
               toggleStep={toggleStep}
             />
             <div
-              className="absolute top-0 bottom-0 pointer-events-none transition-all duration-75"
+              className="absolute top-0 bottom-0 w-[6px] bg-white/95 shadow-[0_0_10px_rgba(255,255,255,0.35)] pointer-events-none z-30"
+              style={{ left: '25%', transform: 'translateX(-3px)' }}
+            />
+            <div
+              className="absolute top-0 bottom-0 w-[6px] bg-white/95 shadow-[0_0_10px_rgba(255,255,255,0.35)] pointer-events-none z-30"
+              style={{ left: '50%', transform: 'translateX(-3px)' }}
+            />
+            <div
+              className="absolute top-0 bottom-0 w-[6px] bg-white/95 shadow-[0_0_10px_rgba(255,255,255,0.35)] pointer-events-none z-30"
+              style={{ left: '75%', transform: 'translateX(-3px)' }}
+            />
+            <div
+              className="absolute top-0 bottom-0 pointer-events-none transition-all duration-75 z-10"
               style={{
                 left: `calc((100% / 16) * ${currentStep})`,
                 width: `calc(100% / 16)`,

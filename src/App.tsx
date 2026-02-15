@@ -101,16 +101,16 @@ function App() {
     setCurrentStep(0);
   };
 
-  const btnBase = 'px-4 py-2 rounded-lg !bg-black !text-white border border-white/30 text-xs font-bold uppercase tracking-widest transition-all duration-200 hover:!bg-black hover:border-white/60 active:scale-95';
+  const btnBase = 'px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg !bg-black !text-white border border-white/30 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-200 hover:!bg-black hover:border-white/60 active:scale-95';
 
   const btnActive = '!bg-black !text-white !border-white/80 shadow-[0_0_10px_rgba(255,255,255,0.2)]';
 
   return (
     <div className="h-screen w-full bg-[#050505] text-white overflow-hidden flex flex-col">
       {/* Header - fixed height */}
-      <header className="h-16 flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] flex items-center">
-        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-4">
-          <h1 className="text-white text-2xl font-bold tracking-wider ml-12">SHAKE</h1>
+      <header className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] py-2">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between w-full px-3 sm:px-4 gap-2">
+          <h1 className="text-white text-2xl font-bold tracking-wider ml-0 sm:ml-12">SHAKE</h1>
 
           {/* Transport Controls */}
           <div className="flex items-center gap-3">
@@ -129,7 +129,7 @@ function App() {
           </div>
 
           {/* BPM and Swing Controls */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
             <div>
               <label className="block text-white/50 text-[10px] mb-0.5 uppercase tracking-widest">BPM</label>
               <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ function App() {
                   max="240"
                   value={bpm}
                   onChange={(e) => setBPM(parseInt(e.target.value) || 120)}
-                  className="w-32 accent-cyan-500"
+                  className="w-24 sm:w-32 accent-cyan-500"
                 />
                 <span className="text-white font-mono w-10 text-sm tabular-nums">{bpm}</span>
               </div>
@@ -154,7 +154,7 @@ function App() {
                 max="100"
                 value={globalSwing}
                 onChange={(e) => setGlobalSwing(parseInt(e.target.value))}
-                className="w-32 accent-cyan-500"
+                className="w-24 sm:w-32 accent-cyan-500"
               />
             </div>
           </div>
@@ -163,7 +163,7 @@ function App() {
 
       {/* Navigation - Frosted 3D Glass */}
       <nav className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)]">
-        <div className="max-w-7xl mx-auto flex gap-1 px-12 py-2">
+        <div className="max-w-7xl mx-auto flex flex-wrap gap-1 px-3 sm:px-12 py-2">
           {(['pad', 'sequencer', 'fm', 'sound'] as View[]).map((view) => (
             <button
               key={view}
@@ -178,8 +178,8 @@ function App() {
 
       {/* Track Selector for Sound view only (FM shows all pads in scroll) */}
       {currentView === 'sound' && (
-        <div className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] px-12 py-3">
-          <div className="max-w-7xl mx-auto flex items-center gap-2">
+        <div className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] px-3 sm:px-12 py-3">
+          <div className="max-w-7xl mx-auto flex items-center gap-2 flex-wrap">
             <span className="text-white/50 text-xs uppercase tracking-widest mr-2">Select Track:</span>
             {tracks.map((track) => (
               <button
@@ -203,8 +203,8 @@ function App() {
       </main>
 
       {/* Footer - fixed height */}
-      <footer className="h-16 flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-t border-[rgba(255,255,255,0.1)] flex items-center">
-        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-12 flex-wrap gap-3">
+      <footer className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-t border-[rgba(255,255,255,0.1)] py-2">
+        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-3 sm:px-12 flex-wrap gap-3">
           <div className="flex gap-3 items-center">
             <button
               onClick={() => setIsRecording(!isRecording)}
@@ -226,7 +226,7 @@ function App() {
                 min="0"
                 max="100"
                 defaultValue="80"
-                className="w-32 accent-cyan-500"
+                className="w-24 sm:w-32 accent-cyan-500"
               />
             </div>
           </div>
