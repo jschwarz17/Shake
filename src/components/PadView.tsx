@@ -15,23 +15,25 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, isActive }) => {
     <button
       onClick={onTrigger}
       className={`
-        aspect-square rounded-2xl bg-slate-800/30 backdrop-blur-md
-        border-[1px] border-white/10
-        shadow-[0_8px_32px_0_rgba(0,0,0,0.37),_inset_0_0_30px_rgba(56,189,248,0.15)]
+        aspect-square rounded-2xl
+        bg-gradient-to-br from-slate-800/40 to-slate-900/60 backdrop-blur-md
+        border border-white/10
+        shadow-[0_8px_32px_0_rgba(0,0,0,0.6),_inset_0_0_30px_rgba(56,189,248,0.15)]
         flex flex-col items-center justify-center
         transition-all duration-150
-        hover:bg-slate-700/40 hover:border-white/20
-        active:scale-[0.98] active:shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]
-        ${isActive ? 'scale-[0.98] shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]' : ''}
+        hover:from-slate-700/50 hover:to-slate-800/70 hover:border-cyan-400/30
+        hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.6),_inset_0_0_40px_rgba(56,189,248,0.25)]
+        active:scale-[0.98] active:shadow-[0_4px_16px_0_rgba(0,0,0,0.8),_inset_0_0_20px_rgba(0,0,0,0.5)]
+        ${isActive ? 'scale-[0.98] shadow-[0_4px_16px_0_rgba(0,0,0,0.8),_inset_0_0_30px_rgba(56,189,248,0.4)]' : ''}
       `}
     >
-      <span className="text-xl font-semibold tracking-wider text-white/90">
+      <span className="text-2xl font-bold tracking-widest text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.3)]">
         {name}
       </span>
-      <span className="text-xs text-blue-200/70 uppercase mt-1">
+      <span className="text-xs text-cyan-300/80 uppercase mt-2 tracking-wider font-medium">
         {mode}
       </span>
-      <div className="w-8 h-1 mx-auto mt-4 rounded-full bg-blue-400/80 shadow-[0_0_10px_rgba(56,189,248,0.8)]" />
+      <div className="w-10 h-1 mx-auto mt-5 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_12px_rgba(56,189,248,1),_0_0_20px_rgba(56,189,248,0.6)]" />
     </button>
   );
 };
