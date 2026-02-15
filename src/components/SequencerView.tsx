@@ -50,11 +50,21 @@ const TrackRow: React.FC<TrackRowProps> = ({
   onToggleMute,
   onToggleSolo,
 }) => {
-  const events = useMIDIStore((state) => state.getTrackEvents(trackId));
+  // Get all events once and memoize the filtered result
+  const allEvents = useMIDIStore((state) => state.events);
   const currentStep = useMIDIStore((state) => state.currentStep);
   const toggleStep = useMIDIStore((state) => state.toggleStep);
 
-  const activeSteps = new Set(events.map((e) => e.step));
+  // Filter events for this track using useMemo to prevent infinite loops
+  const trackEvents = React.useMemo(
+    () => allEvents.filter((e) => e.trackId === trackId),
+    [allEvents, trackId]
+  );
+
+  const activeSteps = React.useMemo(
+    () => new Set(trackEvents.map((e) => e.step)),
+    [trackEvents]
+  );
 
   return (
     <div className="flex items-center gap-3 mb-3">
