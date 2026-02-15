@@ -23,18 +23,18 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, isActive }) => {
       }}
       className={`
         aspect-square rounded-2xl
-        border border-white/10
+        border border-white/20
         flex flex-col items-center justify-center
         transition-all duration-150
-        hover:border-cyan-400/30
+        hover:border-cyan-400/50
         active:scale-[0.98]
         ${isActive ? 'scale-[0.98]' : ''}
       `}
     >
-      <span className="text-2xl font-bold tracking-widest text-white drop-shadow-[0_2px_8px_rgba(255,255,255,0.3)]">
+      <span className="text-3xl font-bold tracking-widest text-white" style={{ textShadow: '0 2px 10px rgba(255,255,255,0.5)' }}>
         {name}
       </span>
-      <span className="text-xs text-cyan-300/80 uppercase mt-2 tracking-wider font-medium">
+      <span className="text-sm text-cyan-200 uppercase mt-2 tracking-wider font-semibold">
         {mode}
       </span>
       <div 
@@ -92,10 +92,10 @@ export const PadView: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full bg-[#050505] flex items-center justify-center p-8">
-      {/* 3x3 Grid Container */}
-      <div className="w-full max-w-4xl aspect-square">
-        <div className="grid grid-cols-3 gap-4 h-full w-full">
+    <div className="h-full w-full flex items-center justify-center p-4">
+      {/* 3x3 Grid Container - constrained to fit viewport */}
+      <div className="w-full h-full max-w-[90vh] max-h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-3 gap-3 h-full w-full">
           {tracks.map((track) => (
             <Pad
               key={track.id}
