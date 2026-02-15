@@ -19,12 +19,16 @@ const StepButton: React.FC<StepButtonProps> = ({
     <button
       onClick={onToggle}
       className={`
-        w-full rounded transition-all
-        ${isActive ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'}
+        w-full rounded transition-all border
+        ${isActive 
+          ? 'bg-blue-500 hover:bg-blue-600 border-blue-400' 
+          : 'bg-gray-800 hover:bg-gray-700 border-gray-700'
+        }
         ${isCurrent ? 'ring-2 ring-blue-400' : ''}
         ${step % 4 === 0 ? 'border-l-2 border-gray-600' : ''}
       `}
       style={{ height: '48px', minHeight: '48px' }}
+      title={`Step ${step + 1}`}
     />
   );
 };
@@ -105,10 +109,12 @@ export const SequencerView: React.FC = () => {
   const toggleSolo = useMIDIStore((state) => state.toggleSolo);
   const clearAllTracks = useMIDIStore((state) => state.clearAllTracks);
 
+  console.log('SequencerView rendering with tracks:', tracks.length);
+
   return (
     <div className="p-6 bg-black min-h-screen">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white text-2xl font-bold">Sequencer</h2>
+        <h2 className="text-white text-2xl font-bold">Sequencer ({tracks.length} tracks)</h2>
         <button
           onClick={clearAllTracks}
           className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
@@ -117,19 +123,25 @@ export const SequencerView: React.FC = () => {
         </button>
       </div>
 
-      <div className="space-y-3 max-w-full overflow-x-auto">
-        {tracks.map((track) => (
-          <TrackRow
-            key={track.id}
-            trackId={track.id}
-            name={track.name}
-            isMuted={track.mute}
-            isSolo={track.solo}
-            onToggleMute={() => toggleMute(track.id)}
-            onToggleSolo={() => toggleSolo(track.id)}
-          />
-        ))}
-      </div>
+      {tracks.length === 0 ? (
+        <div className="text-white text-center py-12">
+          <p>No tracks loaded. This should not happen!</p>
+        </div>
+      ) : (
+        <div className="space-y-3 max-w-full overflow-x-auto">
+          {tracks.map((track) => (
+            <TrackRow
+              key={track.id}
+              trackId={track.id}
+              name={track.name}
+              isMuted={track.mute}
+              isSolo={track.solo}
+              onToggleMute={() => toggleMute(track.id)}
+              onToggleSolo={() => toggleSolo(track.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
