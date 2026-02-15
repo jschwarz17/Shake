@@ -19,7 +19,7 @@ const StepButton: React.FC<StepButtonProps> = ({
     <button
       onClick={onToggle}
       className={`
-        w-full aspect-square rounded transition-all
+        w-full aspect-square rounded transition-all min-h-[40px]
         ${isActive ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'}
         ${isCurrent ? 'ring-2 ring-white' : ''}
         ${step % 4 === 0 ? 'border-l-2 border-gray-600' : ''}
@@ -79,7 +79,10 @@ const TrackRow: React.FC<TrackRowProps> = ({
       </div>
 
       {/* 16 step buttons */}
-      <div className="flex-1 grid grid-cols-16 gap-1">
+      <div 
+        className="flex-1 grid gap-1"
+        style={{ gridTemplateColumns: 'repeat(16, minmax(0, 1fr))' }}
+      >
         {Array.from({ length: 16 }, (_, step) => (
           <StepButton
             key={step}
