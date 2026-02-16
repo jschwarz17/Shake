@@ -8,9 +8,12 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const apiKey = process.env.ELEVEN_LABS_API_KEY || process.env.NEXT_PUBLIC_ELEVEN_LABS_KEY;
+    const apiKey =
+      process.env.ELEVEN_LABS_API_KEY ||
+      process.env.ELEVENLABS_API_KEY ||
+      process.env.NEXT_PUBLIC_ELEVEN_LABS_KEY;
     if (!apiKey) {
-      res.status(500).send('Missing ELEVEN_LABS_API_KEY on server');
+      res.status(500).send('Missing ElevenLabs API key on server. Set ELEVEN_LABS_API_KEY in Vercel project env vars and redeploy.');
       return;
     }
 
@@ -54,6 +57,13 @@ export default async function handler(req: any, res: any) {
 
     if (!elevenRes.ok) {
       const message = await elevenRes.text();
+      if (elevenRes.status === 401) {
+        res.status(401).send(
+          message ||
+            'ElevenLabs unauthorized. Verify ELEVEN_LABS_API_KEY in Vercel env vars (Production + Preview) and redeploy.'
+        );
+        return;
+      }
       res.status(elevenRes.status).send(message || 'ElevenLabs request failed');
       return;
     }
