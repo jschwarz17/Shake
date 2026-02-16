@@ -12,7 +12,7 @@ const generateId = () => Math.random().toString(36).substring(2, 11);
  * Helper to create events for a track
  */
 const createEvents = (trackId: number, steps: number[], velocity = 100): Omit<MIDIEvent, 'id'>[] => {
-  const trackMidiNotes = [36, 38, 42, 46, 39, 37, 70, 45, 49]; // Kick, Snare, CHH, OHH, Clap, Rim, Shaker, Tom, Crash
+  const trackMidiNotes = [36, 38, 42, 46, 39, 37, 70, 49, 60]; // Kick, Snare, CHH, OHH, Clap, Rim, Shaker, Crash, Voice
   
   return steps.map((step) => ({
     trackId,

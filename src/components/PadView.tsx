@@ -22,12 +22,14 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, onToggleMode, onHoldSt
     <div
       role="button"
       tabIndex={0}
-      onClick={onTrigger}
-      onMouseDown={onHoldStart}
-      onMouseUp={onHoldEnd}
-      onMouseLeave={onHoldEnd}
-      onTouchStart={onHoldStart}
-      onTouchEnd={onHoldEnd}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        onHoldStart();
+        onTrigger();
+      }}
+      onPointerUp={onHoldEnd}
+      onPointerCancel={onHoldEnd}
+      onPointerLeave={onHoldEnd}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTrigger(); } }}
       className={`
         aspect-square relative
@@ -65,11 +67,11 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, onToggleMode, onHoldSt
           e.preventDefault();
           e.stopPropagation();
         }}
-        className="relative z-10 mt-3 w-14 h-8 rounded-full border-2 border-[rgba(255,255,255,0.3)] bg-[rgba(255,255,255,0.15)] flex items-center transition-all duration-200 hover:bg-[rgba(255,255,255,0.25)] hover:border-white/50 cursor-pointer"
+        className="modern-btn relative z-10 mt-3 w-16 h-9 rounded-full border-2 border-[rgba(255,255,255,0.3)] flex items-center transition-all duration-200 hover:border-white/50 cursor-pointer"
         title={`Switch to ${mode === 'fm' ? 'sample' : 'FM'}`}
       >
         <div
-          className={`w-6 h-6 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)] transition-all duration-200 flex-shrink-0 ${mode === 'fm' ? 'ml-1' : 'ml-7'}`}
+          className={`w-6 h-6 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)] transition-all duration-200 flex-shrink-0 ${mode === 'fm' ? 'ml-1.5' : 'ml-8.5'}`}
         />
       </button>
       <div className="w-6 h-[3px] rounded-full bg-cyan-400 shadow-[0_0_10px_2px_rgba(34,211,238,0.8)] mt-2"></div>

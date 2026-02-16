@@ -82,24 +82,18 @@ export const DEFAULT_TRACKS: Track[] = [
     },
   },
   {
-    id: 7, name: 'Low Tom', midiNote: 45, mode: 'fm',
+    id: 7, name: 'Crash', midiNote: 49, mode: 'fm',
     swing: 0, volume: 0.7, mute: false, solo: false,
-    fmParams: {
-      synthType: 'standard', pitch: 45, volume: -10,
-      harmonicity: 1.2, modulationIndex: 8,
-      fmAttack: 0.001, fmDecay: 0.3, fmSustain: 0, fmRelease: 0.3,
-      ...standardDefaults,
-    },
-  },
-  {
-    id: 8, name: 'Crash', midiNote: 49, mode: 'fm',
-    swing: 0, volume: 0.6, mute: false, solo: false,
     fmParams: {
       synthType: 'standard', pitch: 49, volume: -12,
       harmonicity: 3.5, modulationIndex: 25,
       fmAttack: 0.001, fmDecay: 1.0, fmSustain: 0, fmRelease: 1.0,
       ...standardDefaults,
     },
+  },
+  {
+    id: 8, name: 'Voice', midiNote: 60, mode: 'sample',
+    swing: 0, volume: 0.8, mute: false, solo: false,
   },
 ];
 

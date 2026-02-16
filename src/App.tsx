@@ -101,7 +101,8 @@ function App() {
     setCurrentStep(0);
   };
 
-  const btnBase = 'px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg !bg-black !text-white border border-white/30 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-200 hover:!bg-black hover:border-white/60 active:scale-95';
+  const btnBase = 'modern-btn px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl !text-white text-sm sm:text-base font-bold uppercase tracking-widest transition-all duration-200';
+  const transportBtn = 'modern-btn px-7 sm:px-10 py-4 sm:py-5 rounded-xl !text-white text-base sm:text-xl font-black uppercase tracking-widest transition-all duration-200';
 
   const btnActive = '!bg-black !text-white !border-white/80 shadow-[0_0_10px_rgba(255,255,255,0.2)]';
 
@@ -110,19 +111,19 @@ function App() {
       {/* Header - fixed height */}
       <header className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] py-2">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between w-full px-3 sm:px-4 gap-2">
-          <h1 className="text-white text-2xl font-bold tracking-wider ml-0 sm:ml-12">SHAKE</h1>
+          <h1 className="shake-logo text-4xl sm:text-5xl ml-3 sm:ml-14 leading-none">{'\u00A0'}SHAKE</h1>
 
           {/* Transport Controls */}
           <div className="flex items-center gap-3">
             <button
               onClick={handlePlayPause}
-              className={`${btnBase} ${isPlaying ? 'text-green-400 border-green-400/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : ''}`}
+              className={`${transportBtn} ${isPlaying ? 'text-green-400 border-green-400/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]' : ''}`}
             >
               {isPlaying ? 'PAUSE' : 'PLAY'}
             </button>
             <button
               onClick={handleStop}
-              className={`${btnBase} active:text-red-400 active:border-red-400/50 active:shadow-[0_0_15px_rgba(248,113,113,0.3)]`}
+              className={`${transportBtn} active:text-red-400 active:border-red-400/50 active:shadow-[0_0_15px_rgba(248,113,113,0.3)]`}
             >
               STOP
             </button>

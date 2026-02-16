@@ -27,6 +27,5 @@ export const TRACK_ID_TO_SAMPLE_URL: { [key: number]: string } = {
   4: DEFAULT_DRUM_SAMPLES.clap,
   5: DEFAULT_DRUM_SAMPLES.rim,
   6: DEFAULT_DRUM_SAMPLES.shaker,
-  7: DEFAULT_DRUM_SAMPLES.tom,
-  8: DEFAULT_DRUM_SAMPLES.crash,
+  7: DEFAULT_DRUM_SAMPLES.crash,
 };

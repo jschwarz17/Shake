@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
-import { RHYTHM_PRESETS, loadPresetEvents } from '../presets/rhythmPresets';
+import { RHYTHM_PRESETS } from '../presets/rhythmPresets';
 
 interface StepButtonProps {
   trackId: number;
@@ -57,6 +57,19 @@ const TrackLabelRow: React.FC<{ name: string; isMuted: boolean; isSolo: boolean;
   </div>
 );
 
+const GENRE_TIMING: Record<string, { bpm: number; swing: number }> = {
+  Rock: { bpm: 125, swing: 52.5 },
+  'Hip Hop': { bpm: 90, swing: 62.5 },
+  House: { bpm: 122.5, swing: 56 },
+  Techno: { bpm: 135, swing: 51 },
+  Trap: { bpm: 145, swing: 51.5 },
+  Funk: { bpm: 100, swing: 67.5 },
+  'Drum & Bass': { bpm: 170, swing: 52.5 },
+  Reggae: { bpm: 75, swing: 65 },
+  Jazz: { bpm: 140, swing: 75 },
+  Latin: { bpm: 110, swing: 55 },
+};
+
 const SequencerGrid: React.FC<{
   tracks: { id: number }[];
   currentStep: number;
@@ -102,7 +115,8 @@ export const SequencerView: React.FC = () => {
   const toggleSolo = useMIDIStore((state) => state.toggleSolo);
   const toggleStep = useMIDIStore((state) => state.toggleStep);
   const clearAllTracks = useMIDIStore((state) => state.clearAllTracks);
-  const loadPreset = useMIDIStore((state) => state.loadPreset);
+  const setBPM = useMIDIStore((state) => state.setBPM);
+  const setGlobalSwing = useMIDIStore((state) => state.setGlobalSwing);
 
   if (!tracks || tracks.length === 0) {
     return (
@@ -116,13 +130,19 @@ export const SequencerView: React.FC = () => {
 
   return (
     <div className="flex-1 min-h-0 bg-[#050505] flex flex-col overflow-hidden">
-      <div className="px-3 sm:px-12 pt-2 pb-1 flex-shrink-0">
-        <div className="flex flex-wrap gap-1 pl-[120px] sm:pl-[200px]">
+      <div className="px-3 sm:px-12 pb-1 flex-shrink-0">
+        <div className="ml-[120px] sm:ml-[200px] w-[330px] sm:w-[540px] h-3 sm:h-4 bg-black mb-2" />
+        <div className="grid grid-cols-5 gap-1.5 pl-[120px] sm:pl-[200px]">
           {RHYTHM_PRESETS.map((preset, index) => (
             <button
               key={preset.name}
-              onClick={() => loadPreset(loadPresetEvents(RHYTHM_PRESETS[index]))}
-              className="px-2 py-1 text-[10px] uppercase tracking-wide rounded bg-black text-white border border-white/40 hover:border-white/70 transition-all"
+              onClick={() => {
+                const timing = GENRE_TIMING[RHYTHM_PRESETS[index].name];
+                if (!timing) return;
+                setBPM(timing.bpm);
+                setGlobalSwing(timing.swing);
+              }}
+              className="modern-btn px-2.5 sm:px-3 py-2 text-[10px] sm:text-xs uppercase tracking-wide rounded-lg text-white transition-all border !border-blue-400/80 shadow-[0_0_10px_rgba(56,189,248,0.25)]"
             >
               {preset.name}
             </button>
@@ -135,14 +155,14 @@ export const SequencerView: React.FC = () => {
         </h2>
         <button
           onClick={clearAllTracks}
-          className="px-4 py-2 !bg-black !text-white rounded-lg transition-all border border-white/40 hover:border-white/70 active:scale-95"
+          className="modern-btn px-4 py-2.5 !text-white rounded-xl transition-all active:scale-95"
         >
           Clear All
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 px-3 sm:px-12 pb-4">
-        <div className="flex h-full">
+      <div className="flex-1 min-h-0 px-3 sm:px-12 pb-8">
+        <div className="flex" style={{ height: 'calc(100% - 20px)' }}>
           <div className="flex flex-col justify-between flex-shrink-0" style={{ height: '100%' }}>
             {tracks.map((track) => (
               <TrackLabelRow

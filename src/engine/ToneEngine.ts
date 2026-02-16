@@ -19,6 +19,8 @@ class ToneEngine {
     if (this.isInitialized) return;
     
     await Tone.start();
+    Tone.getContext().lookAhead = 0.01;
+    (Tone.getContext().rawContext as any).latencyHint = 'interactive';
     
     // Configure Transport
     Tone.Transport.bpm.value = 120;
@@ -64,7 +66,8 @@ class ToneEngine {
     if (!this.isInitialized) {
       await this.initialize();
     }
-    const now = Tone.now();
+    // Use immediate time for pad hits to minimize perceived trigger latency.
+    const now = Tone.immediate();
     const event: MIDIEvent = {
       id: `pad-${Date.now()}`,
       trackId,
