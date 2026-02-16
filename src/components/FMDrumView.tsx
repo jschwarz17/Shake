@@ -39,6 +39,7 @@ export const FMDrumView: React.FC = () => {
   const [selectedTrackId, setSelectedTrackId] = React.useState(0);
   const tracks = useMIDIStore((state) => state.tracks);
   const updateTrack = useMIDIStore((state) => state.updateTrack);
+  const setTrackVolume = useMIDIStore((state) => state.setTrackVolume);
   const toggleTrackMode = useMIDIStore((state) => state.toggleTrackMode);
 
   const updateParam = (trackId: number, param: keyof FMSynthParams, value: number | string) => {
@@ -126,7 +127,9 @@ export const FMDrumView: React.FC = () => {
 
             {/* Sliders grid */}
             <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 content-start">
-              {/* Common: Pitch and Volume */}
+              {/* Per-track volume (0–100%) — applies to both sample and FM playback */}
+              <FMSlider label="Track volume" description="level 0–100%" value={Math.round((track.volume ?? 1) * 100)} min={0} max={100} step={1} suffix="%" onChange={(v) => setTrackVolume(track.id, v / 100)} />
+              {/* Common: Pitch and Volume (FM output level) */}
               <FMSlider label="Pitch" description="MIDI note" value={track.fmParams!.pitch ?? track.midiNote} min={24} max={96} step={1} onChange={(v) => updateParam(track.id, 'pitch', v)} />
               <FMSlider label="Volume" description="output level" value={track.fmParams!.volume ?? -10} min={-40} max={0} step={1} suffix="dB" onChange={(v) => updateParam(track.id, 'volume', v)} />
 

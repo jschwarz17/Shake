@@ -15,6 +15,8 @@ export interface SampleData {
   url: string;
   startTime: number; // Sample start offset in seconds
   duration: number; // Sample playback duration in seconds
+  /** When true, sample is played as 4 even chops; step index picks one deterministically. */
+  chopEnabled?: boolean;
 }
 
 export interface FMSynthParams {

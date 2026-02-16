@@ -11,6 +11,8 @@ class ToneEngine {
   private isInitialized = false;
   private stepCallback?: (step: number) => void;
   private stepScheduleId?: number;
+  private masterGain!: Tone.Gain;
+  private masterVolume = 1;
 
   /**
    * Initialize the audio engine and Tone.js Transport
@@ -22,6 +24,8 @@ class ToneEngine {
     Tone.getContext().lookAhead = 0.01;
     (Tone.getContext().rawContext as any).latencyHint = 'interactive';
     
+    this.masterGain = new Tone.Gain(this.masterVolume).toDestination();
+    
     // Configure Transport
     Tone.Transport.bpm.value = 120;
     Tone.Transport.timeSignature = 4;
@@ -31,6 +35,14 @@ class ToneEngine {
     
     this.isInitialized = true;
     console.log('Tone Engine initialized');
+  }
+
+  /**
+   * Set master volume (0–1). Safe to call before initialize(); value is applied when engine starts.
+   */
+  setMasterVolume(gain: number) {
+    this.masterVolume = Math.max(0, Math.min(1, gain));
+    if (this.masterGain) this.masterGain.gain.value = this.masterVolume;
   }
 
   /**
@@ -161,7 +173,7 @@ class ToneEngine {
       if (existingPlayers?.length) {
         existingPlayers.forEach((p) => p.dispose());
       }
-      const player = new Tone.Player(url).toDestination();
+      const player = new Tone.Player(url).connect(this.masterGain);
       await player.load(url);
       this.players.set(trackId, [player]);
       
@@ -176,7 +188,7 @@ class ToneEngine {
    * Create advanced drum synth for a track (Kick/Snare)
    */
   createDrumSynth(trackId: number, params: any) {
-    const synth = new AdvancedDrumSynth(params);
+    const synth = new AdvancedDrumSynth(params, this.masterGain);
     this.drumSynths.set(trackId, synth);
   }
 
@@ -202,7 +214,7 @@ class ToneEngine {
         release: params.fmRelease || 0.3,
       },
       volume: params.volume || -10,
-    }).toDestination();
+    }).connect(this.masterGain);
     this.standardSynths.set(trackId, synth);
   }
 
@@ -324,12 +336,23 @@ class ToneEngine {
       return;
     }
 
-    const newPlayer = new Tone.Player(player.buffer).toDestination();
+    const newPlayer = new Tone.Player(player.buffer).connect(this.masterGain);
     newPlayer.volume.value = Tone.gainToDb((event.velocity / 127) * track.volume);
-    const startTime = Math.max(0, track.sample?.startTime ?? 0);
-    const availableDuration = Math.max(0.01, player.buffer.duration - startTime);
-    const requestedDuration = track.sample?.duration ?? availableDuration;
-    const duration = Math.max(0.01, Math.min(availableDuration, requestedDuration));
+    const baseStart = Math.max(0, track.sample?.startTime ?? 0);
+    const availableDuration = Math.max(0.01, player.buffer.duration - baseStart);
+    const baseDuration = Math.max(0.01, Math.min(availableDuration, track.sample?.duration ?? availableDuration));
+    let startTime = baseStart;
+    let duration = baseDuration;
+
+    if (track.sample?.chopEnabled && baseDuration > 0.05) {
+      const chopCount = 4;
+      const chopDuration = baseDuration / chopCount;
+      const step = event.step ?? 0;
+      const chopIndex = ((step * 31) + 17) % chopCount;
+      startTime = baseStart + chopIndex * chopDuration;
+      duration = Math.min(chopDuration, Math.max(0.01, player.buffer.duration - startTime));
+    }
+
     newPlayer.start(time, startTime, duration);
     
     // Dispose after playback
@@ -350,7 +373,7 @@ class ToneEngine {
     // Try advanced synth (Kick/Snare)
     const advSynth = this.drumSynths.get(trackId);
     if (advSynth) {
-      advSynth.trigger(event.note, event.velocity, time);
+      advSynth.trigger(event.note, event.velocity, time, trackVolume);
       return;
     }
 
@@ -414,6 +437,7 @@ class ToneEngine {
     this.drumSynths.clear();
     this.standardSynths.clear();
     this.trackParts = Array(9).fill(null);
+    if (this.masterGain) this.masterGain.dispose();
     
     this.isInitialized = false;
   }

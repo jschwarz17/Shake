@@ -18,6 +18,7 @@ function App() {
   const [selectedTrack, setSelectedTrack] = React.useState(0);
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [isRecording, setIsRecording] = React.useState(false);
+  const [masterVolume, setMasterVolume] = React.useState(80);
   
   const bpm = useMIDIStore((state) => state.bpm);
   const setBPM = useMIDIStore((state) => state.setBPM);
@@ -77,6 +78,11 @@ function App() {
   React.useEffect(() => {
     toneEngine.setBPM(bpm);
   }, [bpm]);
+
+  // Apply master volume to engine (works before and after init)
+  React.useEffect(() => {
+    toneEngine.setMasterVolume(masterVolume / 100);
+  }, [masterVolume]);
 
   // Update Tone.js when events or settings change
   React.useEffect(() => {
@@ -230,7 +236,8 @@ function App() {
                 type="range"
                 min="0"
                 max="100"
-                defaultValue="80"
+                value={masterVolume}
+                onChange={(e) => setMasterVolume(Number(e.target.value))}
                 className="w-24 sm:w-32 accent-cyan-500"
               />
             </div>

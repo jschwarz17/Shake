@@ -223,6 +223,7 @@ interface SoundViewProps {
 export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
   const track = useMIDIStore((state) => state.tracks[trackId]);
   const updateTrack = useMIDIStore((state) => state.updateTrack);
+  const setTrackVolume = useMIDIStore((state) => state.setTrackVolume);
   const [waveformData, setWaveformData] = React.useState<number[]>([]);
   const [audioBuffer, setAudioBuffer] = React.useState<AudioBuffer | null>(null);
   const [isLoadingSample, setIsLoadingSample] = React.useState(false);
@@ -395,6 +396,20 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
         >
           Mode: {track.mode === 'fm' ? 'FM' : 'Sample'} (Switch)
         </button>
+      </div>
+      <div className="mb-4 flex items-center gap-3 flex-wrap">
+        <span className="text-white/70 text-xs font-medium">Track volume</span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={Math.round((track.volume ?? 1) * 100)}
+          onChange={(e) => setTrackVolume(trackId, Number(e.target.value) / 100)}
+          className="w-32 accent-cyan-500"
+        />
+        <span className="text-cyan-300 text-sm font-mono w-10">{Math.round((track.volume ?? 1) * 100)}%</span>
+      </div>
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         {isVoiceTrack && (
           <button
             type="button"
@@ -464,6 +479,33 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
               </div>
             </div>
           </div>
+
+          {isVoiceTrack && (
+          <div className="w-full rounded-md border border-white/35 bg-black/85 px-3 py-2">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <span className="text-xs font-semibold text-cyan-200">Chop vocal</span>
+                <p className="text-[10px] text-white/50 mt-0.5">4 even parts · each step plays one part (same step = same chop)</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => updateTrack(trackId, {
+                  sample: {
+                    ...track.sample!,
+                    chopEnabled: !track.sample?.chopEnabled,
+                  },
+                })}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  track.sample?.chopEnabled
+                    ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300'
+                    : 'bg-white/10 border border-white/30 text-white/70 hover:border-white/50'
+                }`}
+              >
+                {track.sample?.chopEnabled ? 'On' : 'Off'}
+              </button>
+            </div>
+          </div>
+        )}
 
           <div className="bg-gray-900 p-4 rounded-lg">
             <h3 className="text-white font-medium mb-2">Sample Info</h3>

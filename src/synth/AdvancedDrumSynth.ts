@@ -13,7 +13,7 @@ export class AdvancedDrumSynth {
   private mode: 'skin' | 'liquid' | 'metal';
   private params: Required<Pick<FMSynthParams, 'pitch' | 'attack' | 'decay' | 'harmonics' | 'spread' | 'morph' | 'fold' | 'mode' | 'volume'>>;
 
-  constructor(params: FMSynthParams) {
+  constructor(params: FMSynthParams, destination?: Tone.ToneAudioNode) {
     this.params = {
       pitch: params.pitch ?? 36,
       attack: params.attack ?? 0.5,
@@ -30,8 +30,10 @@ export class AdvancedDrumSynth {
     // Create waveshaper for folding
     this.waveShaper = new Tone.WaveShaper(this.createFoldCurve(this.params.fold), 4096);
     
-    // Master gain
-    this.masterGain = new Tone.Gain(Tone.dbToGain(this.params.volume)).toDestination();
+    // Master gain — route to provided destination or to destination
+    this.masterGain = new Tone.Gain(Tone.dbToGain(this.params.volume));
+    if (destination) this.masterGain.connect(destination);
+    else this.masterGain.toDestination();
     
     // Create 6 oscillators
     for (let i = 0; i < 6; i++) {
@@ -131,12 +133,13 @@ export class AdvancedDrumSynth {
   /**
    * Trigger the drum sound
    */
-  trigger(note: number, velocity: number, time?: number) {
+  trigger(note: number, velocity: number, time?: number, trackVolume?: number) {
     const now = time || Tone.now();
     // Use pitch param if set, otherwise fall back to MIDI note
     const midiNote = this.params.pitch || note;
     const fundamental = Tone.Frequency(midiNote, 'midi').toFrequency();
-    const vel = velocity / 127;
+    const trackMult = trackVolume ?? 1;
+    const vel = (velocity / 127) * trackMult;
 
     // Calculate frequencies with spread
     const frequencies = this.calculateFrequencies(fundamental, this.params.spread);
