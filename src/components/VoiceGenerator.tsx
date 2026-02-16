@@ -191,27 +191,34 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
   };
 
   return (
-    <section className="rounded-xl border border-cyan-400/35 bg-[linear-gradient(180deg,rgba(13,22,45,0.95)_0%,rgba(4,8,20,0.98)_100%)] p-3 sm:p-4 shadow-[0_0_20px_rgba(34,211,238,0.14)]">
+    <section className="relative isolate rounded-xl border border-cyan-400/35 bg-[linear-gradient(180deg,rgba(13,22,45,0.95)_0%,rgba(4,8,20,0.98)_100%)] p-3 sm:p-4 shadow-[0_0_20px_rgba(34,211,238,0.14)]">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-base sm:text-lg font-bold text-cyan-100">VOICE MODULE</h3>
         <span className="text-[10px] uppercase tracking-widest text-cyan-300/80">ElevenLabs</span>
       </div>
 
-      <div className="space-y-2 relative z-20 pointer-events-auto">
+      <div className="space-y-2 relative z-[60] pointer-events-auto">
         <label className="text-xs uppercase tracking-wider text-white/70">Phrase (max 10 words)</label>
-        <input
-          type="text"
+        <textarea
           value={phrase}
           onChange={(e) => handlePhraseChange(e.target.value)}
-          onInput={(e) => handlePhraseChange((e.target as HTMLInputElement).value)}
+          onInput={(e) => handlePhraseChange((e.target as HTMLTextAreaElement).value)}
           onPointerDown={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
+          onFocus={(e) => e.currentTarget.select()}
           placeholder="e.g. all night long"
+          rows={2}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck={false}
-          className="relative z-30 pointer-events-auto w-full h-11 rounded-lg bg-black/70 border border-white/25 px-3 py-2 text-sm !text-white outline-none focus:border-cyan-300/70"
+          className="relative z-[70] pointer-events-auto w-full rounded-lg px-3 py-2 text-sm outline-none resize-none"
+          style={{
+            backgroundColor: '#0b1220',
+            color: '#ffffff',
+            caretColor: '#22d3ee',
+            border: '1px solid rgba(255,255,255,0.25)',
+          }}
         />
         <div className="text-[11px] text-white/60">{wordCount}/{MAX_WORDS} words</div>
       </div>
