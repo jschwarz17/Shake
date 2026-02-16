@@ -62,9 +62,10 @@ const ScrollWheel: React.FC<ScrollWheelProps> = ({ label, options, value, onChan
 
 interface VoiceGeneratorProps {
   onUseSample: (url: string, name: string, duration: number) => Promise<void>;
+  onAutoLoaded?: () => void;
 }
 
-export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) => {
+export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample, onAutoLoaded }) => {
   const [phrase, setPhrase] = React.useState('');
   const [note, setNote] = React.useState<string>('C');
   const [chordType, setChordType] = React.useState<string>('Minor');
@@ -120,11 +121,9 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
     };
   }, [audioUrl]);
 
-  React.useEffect(() => {
-    return () => {
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
-    };
-  }, [audioUrl]);
+  // Intentionally do not revoke object URLs on unmount:
+  // the generated URL is stored in track.sample and should remain usable
+  // when the user navigates away and back within the same session.
 
   const handlePhraseChange = (next: string) => {
     const words = next.trim().split(/\s+/).filter(Boolean);
@@ -169,24 +168,18 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
         audio.onloadedmetadata = () => resolve(audio.duration || 5);
         audio.onerror = () => resolve(5);
       });
-      setDuration(Math.min(10, Math.max(0.2, metadataLoaded)));
+      const safeDuration = Math.min(10, Math.max(0.2, metadataLoaded));
+      setDuration(safeDuration);
+
+      // Auto-load generated vocal sample into the slot immediately.
+      setIsApplying(true);
+      await onUseSample(nextUrl, `Voice ${note} ${chordType}`, safeDuration);
+      onAutoLoaded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate vocal sample.');
     } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleApply = async () => {
-    if (!audioUrl) return;
-    setIsApplying(true);
-    setError(null);
-    try {
-      await onUseSample(audioUrl, `Voice ${note} ${chordType}`, Math.min(10, duration));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to apply voice sample.');
-    } finally {
       setIsApplying(false);
+      setIsGenerating(false);
     }
   };
 
@@ -232,10 +225,10 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
         <button
           type="button"
           onClick={handleGenerate}
-          disabled={isGenerating}
+          disabled={isGenerating || isApplying}
           className="modern-btn px-4 py-2 rounded-lg text-sm disabled:opacity-50"
         >
-          {isGenerating ? 'Generating...' : 'Generate Vocal'}
+          {isGenerating ? 'Generating...' : isApplying ? 'Loading Slot...' : 'Generate Vocal'}
         </button>
         {audioUrl && (
           <>
@@ -245,14 +238,6 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
               className="modern-btn px-4 py-2 rounded-lg text-sm"
             >
               {isPlaying ? 'Pause' : 'Play'}
-            </button>
-            <button
-              type="button"
-              onClick={handleApply}
-              disabled={isApplying}
-              className="modern-btn px-4 py-2 rounded-lg text-sm border !border-cyan-300/70 shadow-[0_0_14px_rgba(34,211,238,0.2)] disabled:opacity-50"
-            >
-              {isApplying ? 'Loading...' : 'Load To Slot'}
             </button>
           </>
         )}

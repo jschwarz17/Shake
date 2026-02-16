@@ -51,15 +51,19 @@ function App() {
       if (url) {
         try {
           await toneEngine.loadSample(trackId, url);
-          updateTrack(trackId, {
-            sample: {
-              name: `Default ${tracks[trackId].name}`,
-              buffer: null,
-              url: url,
-              startTime: 0,
-              duration: 1,
-            },
-          });
+          // Do not overwrite existing user/AI-assigned samples.
+          const currentTrack = useMIDIStore.getState().tracks[trackId];
+          if (!currentTrack?.sample?.url) {
+            updateTrack(trackId, {
+              sample: {
+                name: `Default ${tracks[trackId].name}`,
+                buffer: null,
+                url: url,
+                startTime: 0,
+                duration: 1,
+              },
+            });
+          }
           console.log(`Loaded sample for track ${trackId}: ${tracks[trackId].name}`);
         } catch (error) {
           console.error(`Failed to load sample for track ${trackId}:`, error);
