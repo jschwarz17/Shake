@@ -4,6 +4,19 @@ import { toneEngine } from '../engine/ToneEngine';
 import { extractWaveformData } from '../engine/SampleLoader';
 import { TRACK_ID_TO_SAMPLE_URL } from '../engine/defaultSamples';
 import { VoiceGenerator } from './VoiceGenerator';
+import type { FMSynthParams } from '../engine/types';
+
+const DEFAULT_STANDARD_FM_PARAMS: FMSynthParams = {
+  synthType: 'standard',
+  pitch: 60,
+  volume: -10,
+  harmonicity: 3,
+  modulationIndex: 10,
+  fmAttack: 0.001,
+  fmDecay: 0.2,
+  fmSustain: 0,
+  fmRelease: 0.3,
+};
 
 interface WaveformProps {
   waveformData: number[];
@@ -360,7 +373,18 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
         }
       }
     }
-    updateTrack(trackId, { mode: switchingToSample ? 'sample' : 'fm' });
+    if (switchingToSample) {
+      updateTrack(trackId, { mode: 'sample' });
+    } else {
+      if (track.fmParams) {
+        useMIDIStore.getState().toggleTrackMode(trackId);
+      } else {
+        updateTrack(trackId, {
+          mode: 'fm',
+          fmParams: { ...DEFAULT_STANDARD_FM_PARAMS, pitch: track.midiNote },
+        });
+      }
+    }
   };
 
   const handleUseGeneratedVoiceSample = async (url: string, name: string, generatedDuration: number) => {
@@ -527,7 +551,7 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
         <div className="text-center py-12 border-2 border-dashed border-gray-700 rounded-lg">
           <p className="text-gray-400">{isVoiceTrack ? 'Generate a vocal sample above to begin.' : 'No sample loaded for this track'}</p>
           <p className="text-gray-500 text-sm mt-2">
-            {isVoiceTrack ? 'Enter up to 10 words, pick note/chord, then generate and load to slot.' : 'Click Play once to load defaults, or load a sample from Pad view'}
+            {isVoiceTrack ? 'Enter up to 10 words, set Global Key (top right), then generate.' : 'Click Play once to load defaults, or load a sample from Pad view'}
           </p>
         </div>
       )}

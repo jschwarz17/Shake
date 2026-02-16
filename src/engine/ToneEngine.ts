@@ -164,9 +164,13 @@ class ToneEngine {
   }
 
   /**
-   * Load a sample for a track
+   * Load a sample for a track. Initializes the engine if needed so loading works
+   * even when the sequencer has never been started.
    */
   async loadSample(trackId: number, url: string): Promise<void> {
+    if (!this.isInitialized) {
+      await this.initialize();
+    }
     try {
       console.log(`Loading sample for track ${trackId} from ${url}`);
       const existingPlayers = this.players.get(trackId);

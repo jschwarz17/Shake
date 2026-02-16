@@ -1,64 +1,8 @@
 import React from 'react';
 import WaveSurfer from 'wavesurfer.js';
-
-const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'] as const;
-const CHORD_TYPES = ['Major', 'Minor', 'Major7', 'Minor7', 'Dominant7', 'Sus4', 'Diminished'] as const;
+import { useMIDIStore } from '../engine/MIDIStore';
 
 const MAX_WORDS = 10;
-
-interface ScrollWheelProps {
-  label: string;
-  options: readonly string[];
-  value: string;
-  onChange: (value: string) => void;
-}
-
-const ScrollWheel: React.FC<ScrollWheelProps> = ({ label, options, value, onChange }) => {
-  const currentIndex = Math.max(0, options.findIndex((o) => o === value));
-  const rows = [-2, -1, 0, 1, 2].map((offset) => {
-    const nextIndex = (currentIndex + offset + options.length) % options.length;
-    return { option: options[nextIndex], isActive: offset === 0 };
-  });
-
-  const shift = (direction: 1 | -1) => {
-    const next = (currentIndex + direction + options.length) % options.length;
-    onChange(options[next]);
-  };
-
-  return (
-    <div className="rounded-xl border border-white/20 bg-[#0b1120] p-2">
-      <div className="text-[10px] uppercase tracking-wider text-white/70 mb-1">{label}</div>
-      <div
-        className="relative h-40 overflow-hidden rounded-md bg-black/40 border border-white/15"
-        onWheel={(e) => {
-          e.preventDefault();
-          shift(e.deltaY > 0 ? 1 : -1);
-        }}
-      >
-        <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 border-y border-cyan-300/60 bg-cyan-400/10" />
-        <div className="h-full flex flex-col justify-center">
-          {rows.map(({ option, isActive }, idx) => (
-            <div
-              key={`${option}-${idx}`}
-              role="button"
-              tabIndex={0}
-              onClick={() => onChange(option)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') onChange(option);
-              }}
-              className={`h-8 flex items-center justify-center text-base tracking-wide transition-colors select-none ${
-                isActive ? 'text-cyan-100 font-semibold' : 'text-white/65'
-              }`}
-            >
-              {option}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="mt-1 text-[10px] text-white/50">Scroll wheel or tap row</div>
-    </div>
-  );
-};
 
 interface VoiceGeneratorProps {
   onUseSample: (url: string, name: string, duration: number) => Promise<void>;
@@ -67,8 +11,8 @@ interface VoiceGeneratorProps {
 
 export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample, onAutoLoaded }) => {
   const [phrase, setPhrase] = React.useState('');
-  const [note, setNote] = React.useState<string>('C');
-  const [chordType, setChordType] = React.useState<string>('Minor');
+  const globalKeyRoot = useMIDIStore((s) => s.globalKeyRoot);
+  const globalChordType = useMIDIStore((s) => s.globalChordType);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [audioUrl, setAudioUrl] = React.useState<string | null>(null);
@@ -150,7 +94,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample, onA
       const res = await fetch('/api/elevenlabs-generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phrase: phrase.trim(), note, chordType, maxSeconds: 10 }),
+        body: JSON.stringify({ phrase: phrase.trim(), note: globalKeyRoot, chordType: globalChordType, maxSeconds: 10 }),
       });
 
       if (!res.ok) {
@@ -171,10 +115,9 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample, onA
       const safeDuration = Math.min(10, Math.max(0.2, metadataLoaded));
       setDuration(safeDuration);
 
-      // Auto-load generated vocal sample into the slot immediately.
+      // Auto-load generated vocal sample into the slot immediately (module stays open so user can play preview).
       setIsApplying(true);
-      await onUseSample(nextUrl, `Voice ${note} ${chordType}`, safeDuration);
-      onAutoLoaded?.();
+      await onUseSample(nextUrl, `Voice ${globalKeyRoot} ${globalChordType}`, safeDuration);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate vocal sample.');
     } finally {
@@ -216,11 +159,6 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample, onA
         <div className="text-[11px] text-white/60">{wordCount}/{MAX_WORDS} words</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mt-3">
-        <ScrollWheel label="Note" options={NOTES} value={note} onChange={setNote} />
-        <ScrollWheel label="Chord Type" options={CHORD_TYPES} value={chordType} onChange={setChordType} />
-      </div>
-
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
@@ -244,7 +182,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample, onA
       </div>
 
       <div className="mt-3 text-[11px] text-white/60">
-        Prompt: Acapella vocal singing phrase in {note} {chordType}, dry studio quality, short phrase (10s max).
+        Prompt: Acapella vocal singing phrase in {globalKeyRoot} {globalChordType} (set in Global Key, top right), dry studio quality, short phrase (10s max).
       </div>
 
       {error && <div className="mt-2 text-sm text-red-300">{error}</div>}

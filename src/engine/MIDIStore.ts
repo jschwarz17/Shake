@@ -3,6 +3,8 @@ import type { MIDIEvent, Track, SequencerState } from './types';
 import { DEFAULT_TRACKS } from './defaultTracks';
 
 interface MIDIStore extends SequencerState {
+  globalKeyRoot: string;
+  globalChordType: string;
   // Actions
   addEvent: (event: Omit<MIDIEvent, 'id'>) => void;
   removeEvent: (eventId: string) => void;
@@ -25,6 +27,8 @@ interface MIDIStore extends SequencerState {
   setCurrentStep: (step: number) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   loadPreset: (events: MIDIEvent[]) => void;
+  setGlobalKeyRoot: (root: string) => void;
+  setGlobalChordType: (chordType: string) => void;
   
   // Utility
   getTrackEvents: (trackId: number) => MIDIEvent[];
@@ -41,6 +45,8 @@ export const useMIDIStore = create<MIDIStore>((set, get) => ({
   events: [],
   currentStep: 0,
   isPlaying: false,
+  globalKeyRoot: 'C',
+  globalChordType: 'Minor',
   
   // Event actions
   addEvent: (event) => {
@@ -159,6 +165,14 @@ export const useMIDIStore = create<MIDIStore>((set, get) => ({
   
   loadPreset: (events) => {
     set({ events });
+  },
+  
+  setGlobalKeyRoot: (root) => {
+    set({ globalKeyRoot: root });
+  },
+  
+  setGlobalChordType: (chordType) => {
+    set({ globalChordType: chordType });
   },
   
   // Utility

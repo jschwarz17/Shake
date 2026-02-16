@@ -4,18 +4,17 @@ import { toneEngine } from './engine/ToneEngine';
 import { TRACK_ID_TO_SAMPLE_URL } from './engine/defaultSamples';
 import { PadView } from './components/PadView';
 import { SequencerView } from './components/SequencerView';
-import { FMDrumView } from './components/FMDrumView';
-import { SoundView } from './components/SoundView';
+import { SoundsView } from './components/SoundsView';
+import { GlobalKeyPicker } from './components/GlobalKeyPicker';
 
 console.log('App.tsx module loading...');
 
-type View = 'pad' | 'sequencer' | 'fm' | 'sound';
+type View = 'pad' | 'sequencer' | 'sounds';
 
 function App() {
   console.log('App component rendering');
   
   const [currentView, setCurrentView] = React.useState<View>('pad');
-  const [selectedTrack, setSelectedTrack] = React.useState(0);
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [isRecording, setIsRecording] = React.useState(false);
   const [masterVolume, setMasterVolume] = React.useState(80);
@@ -111,8 +110,8 @@ function App() {
     setCurrentStep(0);
   };
 
-  const btnBase = 'modern-btn px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl !text-white text-sm sm:text-base font-bold uppercase tracking-widest transition-all duration-200';
-  const transportBtn = 'modern-btn px-7 sm:px-10 py-4 sm:py-5 rounded-xl !text-white text-base sm:text-xl font-black uppercase tracking-widest transition-all duration-200';
+  const btnBase = 'modern-btn px-5 sm:px-8 py-3.5 sm:py-4 rounded-2xl !text-white text-base sm:text-lg font-bold uppercase tracking-wider transition-all duration-200';
+  const transportBtn = 'modern-btn px-8 sm:px-14 py-5 sm:py-6 rounded-2xl !text-white text-lg sm:text-2xl font-extrabold uppercase tracking-wider transition-all duration-200';
 
   const btnActive = '!bg-black !text-white !border-white/80 shadow-[0_0_10px_rgba(255,255,255,0.2)]';
 
@@ -121,7 +120,7 @@ function App() {
       {/* Header - fixed height */}
       <header className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] py-2">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between w-full px-3 sm:px-4 gap-2">
-          <h1 className="shake-logo text-4xl sm:text-5xl ml-3 sm:ml-14 leading-none">{'\u00A0'}SHAKE</h1>
+          <h1 className="shake-logo text-4xl sm:text-6xl ml-3 sm:ml-14 leading-none">{'\u00A0'}SHAKE</h1>
 
           {/* Transport Controls */}
           <div className="flex items-center gap-3">
@@ -142,7 +141,7 @@ function App() {
           {/* BPM and Swing Controls */}
           <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
             <div>
-              <label className="block text-white/50 text-[10px] mb-0.5 uppercase tracking-widest">BPM</label>
+              <label className="block text-white/50 text-xs mb-1 uppercase tracking-wider font-semibold">BPM</label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -150,13 +149,13 @@ function App() {
                   max="240"
                   value={bpm}
                   onChange={(e) => setBPM(parseInt(e.target.value) || 120)}
-                  className="w-24 sm:w-32 accent-cyan-500"
+                  className="w-28 sm:w-36 accent-cyan-500"
                 />
-                <span className="text-white font-mono w-10 text-sm tabular-nums">{bpm}</span>
+                <span className="text-white font-semibold w-12 text-base tabular-nums">{bpm}</span>
               </div>
             </div>
             <div>
-              <label className="block text-white/50 text-[10px] mb-0.5 uppercase tracking-widest">
+              <label className="block text-white/50 text-xs mb-1 uppercase tracking-wider font-semibold">
                 Swing: {globalSwing}
               </label>
               <input
@@ -165,52 +164,37 @@ function App() {
                 max="100"
                 value={globalSwing}
                 onChange={(e) => setGlobalSwing(parseInt(e.target.value))}
-                className="w-24 sm:w-32 accent-cyan-500"
+                className="w-28 sm:w-36 accent-cyan-500"
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <GlobalKeyPicker />
           </div>
         </div>
       </header>
 
       {/* Navigation - Frosted 3D Glass */}
       <nav className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)]">
-        <div className="max-w-7xl mx-auto flex flex-wrap gap-1 px-3 sm:px-12 py-2">
-          {(['pad', 'sequencer', 'fm', 'sound'] as View[]).map((view) => (
+        <div className="max-w-7xl mx-auto flex flex-wrap gap-2 px-3 sm:px-12 py-3">
+          {(['pad', 'sequencer', 'sounds'] as View[]).map((view) => (
             <button
               key={view}
               onClick={() => setCurrentView(view)}
               className={`${btnBase} ${currentView === view ? btnActive : ''}`}
             >
-              {view === 'fm' ? 'FM SYNTH' : view.toUpperCase()}
+              {view === 'sounds' ? 'SOUNDS' : view.toUpperCase()}
             </button>
           ))}
         </div>
       </nav>
 
-      {/* Track Selector for Sound view only (FM shows all pads in scroll) */}
-      {currentView === 'sound' && (
-        <div className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-b border-[rgba(255,255,255,0.1)] px-3 sm:px-12 py-3">
-          <div className="max-w-7xl mx-auto flex items-center gap-2 flex-wrap">
-            <span className="text-white/50 text-xs uppercase tracking-widest mr-2">Select Track:</span>
-            {tracks.map((track) => (
-              <button
-                key={track.id}
-                onClick={() => setSelectedTrack(track.id)}
-                className={`${btnBase} !bg-black !text-white !border-white/40 ${selectedTrack === track.id ? '!border-cyan-400/70 shadow-[0_0_10px_rgba(34,211,238,0.25)]' : ''}`}
-              >
-                {track.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Main Content - flex-1 min-h-0, overflow-hidden for pad view */}
       <main className={`flex-1 min-h-0 flex flex-col bg-black ${currentView === 'pad' ? 'overflow-hidden' : 'overflow-auto'}`}>
         {currentView === 'pad' && <PadView />}
         {currentView === 'sequencer' && <SequencerView />}
-        {currentView === 'fm' && <FMDrumView />}
-        {currentView === 'sound' && <SoundView trackId={selectedTrack} />}
+        {currentView === 'sounds' && <SoundsView />}
       </main>
 
       {/* Footer - fixed height */}
@@ -231,14 +215,14 @@ function App() {
           <div className="flex gap-2 items-center">
             <button className={btnBase}>MASTER</button>
             <div className="flex items-center gap-2">
-              <span className="text-white/50 text-[10px] uppercase tracking-widest">Master Volume</span>
+              <span className="text-white/50 text-xs uppercase tracking-wider font-semibold">Master Volume</span>
               <input
                 type="range"
                 min="0"
                 max="100"
                 value={masterVolume}
                 onChange={(e) => setMasterVolume(Number(e.target.value))}
-                className="w-24 sm:w-32 accent-cyan-500"
+                className="w-28 sm:w-36 accent-cyan-500"
               />
             </div>
           </div>
