@@ -449,10 +449,7 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
 
       {isVoiceTrack && showVoiceGenerator && (
         <div className="mb-4">
-          <VoiceGenerator
-            onUseSample={handleUseGeneratedVoiceSample}
-            onAutoLoaded={() => setShowVoiceGenerator(false)}
-          />
+          <VoiceGenerator onUseSample={handleUseGeneratedVoiceSample} />
         </div>
       )}
 

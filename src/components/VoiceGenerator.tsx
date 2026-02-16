@@ -6,10 +6,9 @@ const MAX_WORDS = 10;
 
 interface VoiceGeneratorProps {
   onUseSample: (url: string, name: string, duration: number) => Promise<void>;
-  onAutoLoaded?: () => void;
 }
 
-export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample, onAutoLoaded }) => {
+export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) => {
   const [phrase, setPhrase] = React.useState('');
   const globalKeyRoot = useMIDIStore((s) => s.globalKeyRoot);
   const globalChordType = useMIDIStore((s) => s.globalChordType);
