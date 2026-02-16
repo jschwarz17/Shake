@@ -33,10 +33,9 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const prompt = `Acapella vocal singing: ${safePhrase}, in the key of ${note} ${chordType}, dry studio quality, short 5-second phrase, maximum 10 seconds.`;
-    const voiceId = process.env.ELEVEN_LABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
+    const prompt = `Acapella vocal singing: ${safePhrase}, in the key of ${note} ${chordType}, dry studio quality, short phrase, maximum 10 seconds.`;
 
-    const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    const elevenRes = await fetch('https://api.elevenlabs.io/v1/music/stream', {
       method: 'POST',
       headers: {
         'xi-api-key': apiKey,
@@ -44,14 +43,11 @@ export default async function handler(req: any, res: any) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model_id: 'eleven_music_v1',
-        text: prompt,
-        voice_settings: {
-          stability: 0.35,
-          similarity_boost: 0.6,
-          style: 0.55,
-          use_speaker_boost: true,
-        },
+        model_id: 'music_v1',
+        prompt,
+        music_length_ms: 10000,
+        output_format: 'mp3_44100_128',
+        force_instrumental: false,
       }),
     });
 
