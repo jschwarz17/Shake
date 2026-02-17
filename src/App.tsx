@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMIDIStore } from './engine/MIDIStore';
 import { toneEngine } from './engine/ToneEngine';
-import { TRACK_ID_TO_SAMPLE_URL } from './engine/defaultSamples';
+import { TRACK_ID_TO_SAMPLE_URL, BASS_SUB_URL } from './engine/defaultSamples';
 import { PadView } from './components/PadView';
 import { SequencerView } from './components/SequencerView';
 import { SoundsView } from './components/SoundsView';
@@ -29,6 +29,7 @@ function App() {
   const tracks = useMIDIStore((state) => state.tracks);
   const events = useMIDIStore((state) => state.events);
   const updateTrack = useMIDIStore((state) => state.updateTrack);
+  const bassSubEnabled = useMIDIStore((state) => state.bassSubEnabled);
 
   // Initialize Tone.js on first user interaction
   const handleInit = async () => {
@@ -69,6 +70,13 @@ function App() {
           console.error(`Failed to load sample for track ${trackId}:`, error);
         }
       }
+      if (trackId === 1) {
+        try {
+          await toneEngine.loadBassSub(BASS_SUB_URL);
+        } catch {
+          // Sub is optional
+        }
+      }
     }
     console.log('Default samples loaded!');
   };
@@ -86,7 +94,7 @@ function App() {
   // Update Tone.js when events or settings change
   React.useEffect(() => {
     if (isInitialized) {
-      toneEngine.updateAllTracks(tracks, events, bpm, globalSwing);
+      toneEngine.updateAllTracks(tracks, events, bpm, globalSwing, { bassSubEnabled });
     }
   }, [isInitialized, bpm, globalSwing, tracks, events]);
 

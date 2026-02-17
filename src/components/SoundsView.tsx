@@ -2,6 +2,7 @@ import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
 import { FMTrackPanel } from './FMTrackPanel';
 import { SoundView } from './SoundView';
+import { BassModule } from './BassModule';
 import type { FMSynthParams } from '../engine/types';
 
 const DEFAULT_STANDARD_FM_PARAMS: FMSynthParams = {
@@ -74,9 +75,11 @@ export const SoundsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Content: FM panel or Sound view based on selected track mode */}
+      {/* Content: Bass module, FM panel, or Sound view based on selected track */}
       {track && (
-        isFm ? (
+        selectedTrackId === 1 ? (
+          <BassModule />
+        ) : isFm ? (
           <FMTrackPanel trackId={selectedTrackId} onToggleMode={handleToggleMode} />
         ) : (
           <div className="flex-1 min-h-0 overflow-auto">

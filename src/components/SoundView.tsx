@@ -2,7 +2,7 @@ import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
 import { toneEngine } from '../engine/ToneEngine';
 import { extractWaveformData } from '../engine/SampleLoader';
-import { TRACK_ID_TO_SAMPLE_URL } from '../engine/defaultSamples';
+import { TRACK_ID_TO_SAMPLE_URL, HH_CHH_URL, HH_OHH_URL } from '../engine/defaultSamples';
 import { VoiceGenerator } from './VoiceGenerator';
 import type { FMSynthParams } from '../engine/types';
 
@@ -341,6 +341,33 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
   };
 
   const hasSample = !!audioBuffer || !!track.sample?.url;
+  const isHHTrack = trackId === 3;
+  const hhVariant = (track.sampleVariant ?? 'chh') as 'chh' | 'ohh';
+
+  const handleHHToggle = async () => {
+    const nextVariant = hhVariant === 'chh' ? 'ohh' : 'chh';
+    const url = nextVariant === 'chh' ? HH_CHH_URL : HH_OHH_URL;
+    try {
+      await toneEngine.loadSample(trackId, url);
+      const loaded = toneEngine.getSampleBuffer(trackId);
+      updateTrack(trackId, {
+        sampleVariant: nextVariant,
+        sample: {
+          name: nextVariant === 'chh' ? 'HH (Closed)' : 'HH (Open)',
+          buffer: null,
+          url,
+          startTime: 0,
+          duration: loaded?.duration ?? 1,
+        },
+      });
+      if (loaded) {
+        setWaveformData(extractWaveformData(loaded, 800));
+        setAudioBuffer(loaded);
+      }
+    } catch (e) {
+      console.error('Failed to switch HH sample', e);
+    }
+  };
 
   const toggleTrackModeFromSoundView = async () => {
     const switchingToSample = track.mode === 'fm';
@@ -433,6 +460,18 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
         />
         <span className="text-cyan-300 text-sm font-mono w-10">{Math.round((track.volume ?? 1) * 100)}%</span>
       </div>
+      {isHHTrack && (
+        <div className="mb-4 flex items-center gap-3 flex-wrap">
+          <span className="text-white/70 text-xs font-medium">HH type</span>
+          <button
+            type="button"
+            onClick={() => void handleHHToggle()}
+            className={`modern-btn px-4 py-2 rounded-lg text-sm ${hhVariant === 'ohh' ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200' : ''}`}
+          >
+            {hhVariant === 'chh' ? 'CHH (Closed)' : 'OHH (Open)'} — tap to switch
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         {isVoiceTrack && (
           <button

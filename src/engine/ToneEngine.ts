@@ -13,6 +13,9 @@ class ToneEngine {
   private stepScheduleId?: number;
   private masterGain!: Tone.Gain;
   private masterVolume = 1;
+  private bassSubPlayer: Tone.Player | null = null;
+  private bassSubEnabled = false;
+  private readonly BASS_ROOT_MIDI = 36; // C2 - assumed root of bass sample
 
   /**
    * Initialize the audio engine and Tone.js Transport
@@ -183,9 +186,33 @@ class ToneEngine {
       
       console.log(`✓ Sample loaded successfully for track ${trackId}. Buffer duration: ${player.buffer.duration}s`);
     } catch (error) {
-      console.error(`✗ Failed to load sample for track ${trackId}:`, error);
-      throw error;
+      console.warn(`✗ Failed to load sample for track ${trackId}:`, error);
+      if (trackId !== 1) throw error;
+      // Bass (track 1): don't throw so app works without custom bass files
     }
+  }
+
+  /**
+   * Load bass sub sample (track 1). Call after loadSample(1, primaryUrl).
+   */
+  async loadBassSub(url: string): Promise<void> {
+    if (!this.isInitialized) await this.initialize();
+    try {
+      if (this.bassSubPlayer) {
+        this.bassSubPlayer.dispose();
+        this.bassSubPlayer = null;
+      }
+      const player = new Tone.Player(url).connect(this.masterGain);
+      await player.load(url);
+      this.bassSubPlayer = player;
+      console.log('✓ Bass sub sample loaded');
+    } catch (error) {
+      console.warn('Bass sub sample failed to load (optional):', error);
+    }
+  }
+
+  setBassSubEnabled(enabled: boolean) {
+    this.bassSubEnabled = enabled;
   }
 
   /**
@@ -326,6 +353,12 @@ class ToneEngine {
     time: number,
     track: Track
   ) {
+    // Bass track (1): pitch-shifted sample playback with optional sub
+    if (trackId === 1) {
+      this.playBassSample(event, time, track);
+      return;
+    }
+
     const players = this.players.get(trackId);
     if (!players || players.length === 0) {
       console.warn(`No sample for track ${trackId}, using FM fallback`);
@@ -365,6 +398,32 @@ class ToneEngine {
     };
   }
 
+  private playBassSample(event: MIDIEvent, time: number, track: Track) {
+    const players = this.players.get(1);
+    if (!players?.length || !players[0].buffer?.loaded) return;
+    const primary = players[0];
+    const playbackRate = Math.pow(2, (event.note - this.BASS_ROOT_MIDI) / 12);
+    const vol = (event.velocity / 127) * track.volume;
+
+    const playOne = (buf: Tone.ToneAudioBuffer) => {
+      const p = new Tone.Player(buf).connect(this.masterGain);
+      p.volume.value = Tone.gainToDb(vol);
+      p.playbackRate = playbackRate;
+      p.start(time, 0, buf.duration / playbackRate);
+      p.onstop = () => p.dispose();
+    };
+
+    playOne(primary.buffer);
+    if (this.bassSubEnabled && this.bassSubPlayer?.buffer?.loaded) {
+      const sub = this.bassSubPlayer;
+      const p = new Tone.Player(sub.buffer).connect(this.masterGain);
+      p.volume.value = Tone.gainToDb(vol * 0.85);
+      p.playbackRate = playbackRate;
+      p.start(time, 0, sub.buffer.duration / playbackRate);
+      p.onstop = () => p.dispose();
+    }
+  }
+
   /**
    * Play FM synth
    */
@@ -400,9 +459,11 @@ class ToneEngine {
     tracks: Track[],
     events: MIDIEvent[],
     bpm: number,
-    globalSwing: number
+    globalSwing: number,
+    options?: { bassSubEnabled?: boolean }
   ) {
     this.setBPM(bpm);
+    if (options?.bassSubEnabled !== undefined) this.bassSubEnabled = options.bassSubEnabled;
     
     // Ensure all FM synths exist
     this.initializeFMSynths(tracks);

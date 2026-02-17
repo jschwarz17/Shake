@@ -57,6 +57,8 @@ export interface Track {
   solo: boolean;
   sample?: SampleData;
   fmParams?: FMSynthParams;
+  /** HH track only: which hi-hat sample to use */
+  sampleVariant?: 'chh' | 'ohh';
 }
 
 export interface SequencerState {

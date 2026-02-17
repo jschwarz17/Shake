@@ -12,7 +12,7 @@ const generateId = () => Math.random().toString(36).substring(2, 11);
  * Helper to create events for a track
  */
 const createEvents = (trackId: number, steps: number[], velocity = 100): Omit<MIDIEvent, 'id'>[] => {
-  const trackMidiNotes = [36, 38, 42, 46, 39, 37, 70, 49, 60]; // Kick, Snare, CHH, OHH, Clap, Rim, Shaker, Crash, Voice
+  const trackMidiNotes = [36, 36, 38, 42, 39, 37, 70, 49, 60]; // Kick, Bass, Snare, HH, Clap, Rim, Shaker, Crash, Voice
   
   return steps.map((step) => ({
     trackId,
@@ -32,8 +32,8 @@ export const ROCK_PRESET: RhythmPreset = {
   description: 'Classic rock 4/4 beat',
   events: [
     ...createEvents(0, [0, 4, 8, 12], 110), // Kick on 1, 2, 3, 4
-    ...createEvents(1, [4, 12], 100), // Snare on 2 and 4
-    ...createEvents(2, [0, 2, 4, 6, 8, 10, 12, 14], 80), // Hi-hat 8th notes
+    ...createEvents(2, [4, 12], 100), // Snare on 2 and 4
+    ...createEvents(3, [0, 2, 4, 6, 8, 10, 12, 14], 80), // HH 8th notes
   ],
 };
 
@@ -45,8 +45,8 @@ export const HIPHOP_PRESET: RhythmPreset = {
   description: 'Boom bap style hip hop',
   events: [
     ...createEvents(0, [0, 10], 120), // Kick
-    ...createEvents(1, [4, 12], 105), // Snare
-    ...createEvents(2, [0, 2, 4, 6, 8, 10, 12, 14], 70), // Hi-hat
+    ...createEvents(2, [4, 12], 105), // Snare
+    ...createEvents(3, [0, 2, 4, 6, 8, 10, 12, 14], 70), // HH
     ...createEvents(4, [8], 85), // Clap ghost note
   ],
 };
@@ -60,7 +60,7 @@ export const HOUSE_PRESET: RhythmPreset = {
   events: [
     ...createEvents(0, [0, 4, 8, 12], 115), // Kick on every beat
     ...createEvents(4, [4, 12], 95), // Clap on 2 and 4
-    ...createEvents(2, [2, 6, 10, 14], 75), // Hi-hat offbeat
+    ...createEvents(3, [2, 6, 10, 14], 75), // HH offbeat
   ],
 };
 
@@ -72,8 +72,8 @@ export const TECHNO_PRESET: RhythmPreset = {
   description: 'Driving techno rhythm',
   events: [
     ...createEvents(0, [0, 4, 8, 12], 120), // Kick 4/4
-    ...createEvents(2, [2, 6, 10, 14], 85), // CHH offbeat
-    ...createEvents(3, [8], 90), // OHH accent
+    ...createEvents(3, [2, 6, 10, 14], 85), // HH offbeat
+    ...createEvents(3, [8], 90), // HH accent (OHH would be same track, different sample)
     ...createEvents(5, [5, 13], 70), // Rim accents
   ],
 };
@@ -86,8 +86,8 @@ export const TRAP_PRESET: RhythmPreset = {
   description: 'Modern trap style',
   events: [
     ...createEvents(0, [0, 6], 115), // Kick
-    ...createEvents(1, [4], 105), // Snare
-    ...createEvents(2, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 65), // Hi-hat rolls
+    ...createEvents(2, [4], 105), // Snare
+    ...createEvents(3, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 65), // HH rolls
     ...createEvents(6, [2, 10], 75), // Shaker
   ],
 };
@@ -100,8 +100,8 @@ export const FUNK_PRESET: RhythmPreset = {
   description: 'Funky syncopated groove',
   events: [
     ...createEvents(0, [0, 6, 12], 110), // Kick syncopation
-    ...createEvents(1, [4], 100), // Snare on 2
-    ...createEvents(2, [0, 2, 4, 6, 8, 10, 12, 14], 80), // Hi-hat
+    ...createEvents(2, [4], 100), // Snare on 2
+    ...createEvents(3, [0, 2, 4, 6, 8, 10, 12, 14], 80), // HH
     ...createEvents(4, [7, 15], 85), // Clap accents
     ...createEvents(5, [10], 90), // Rim
   ],
@@ -115,8 +115,8 @@ export const DNB_PRESET: RhythmPreset = {
   description: 'Fast breakbeat style',
   events: [
     ...createEvents(0, [0, 9], 120), // Kick
-    ...createEvents(1, [4, 12], 110), // Snare
-    ...createEvents(2, [0, 2, 4, 5, 6, 8, 10, 11, 12, 14], 75), // Hi-hat complex pattern
+    ...createEvents(2, [4, 12], 110), // Snare
+    ...createEvents(3, [0, 2, 4, 5, 6, 8, 10, 11, 12, 14], 75), // HH complex pattern
   ],
 };
 
@@ -128,7 +128,7 @@ export const REGGAE_PRESET: RhythmPreset = {
   description: 'One drop reggae',
   events: [
     ...createEvents(0, [6, 14], 105), // Kick on offbeat
-    ...createEvents(1, [4], 95), // Snare on 3
+    ...createEvents(2, [4], 95), // Snare on 3
     ...createEvents(5, [2, 6, 10, 14], 85), // Rim clicks
   ],
 };
@@ -141,7 +141,7 @@ export const JAZZ_PRESET: RhythmPreset = {
   description: 'Swung jazz ride pattern',
   events: [
     ...createEvents(0, [0, 12], 95), // Kick
-    ...createEvents(1, [4], 90), // Snare
+    ...createEvents(2, [4], 90), // Snare
     ...createEvents(5, [0, 3, 6, 9, 12, 15], 80), // Rim (ride cymbal pattern)
   ],
 };
@@ -154,9 +154,9 @@ export const LATIN_PRESET: RhythmPreset = {
   description: 'Latin percussion groove',
   events: [
     ...createEvents(0, [0, 6, 8], 105), // Kick
-    ...createEvents(1, [4, 12], 100), // Snare
+    ...createEvents(2, [4, 12], 100), // Snare
     ...createEvents(6, [0, 2, 4, 6, 8, 10, 12, 14], 85), // Shaker 8ths
-    ...createEvents(7, [3, 11], 95), // Tom accents
+    ...createEvents(7, [3, 11], 95), // Crash accents
     ...createEvents(4, [2, 10], 80), // Clap
   ],
 };

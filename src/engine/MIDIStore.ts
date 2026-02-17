@@ -5,6 +5,7 @@ import { DEFAULT_TRACKS } from './defaultTracks';
 interface MIDIStore extends SequencerState {
   globalKeyRoot: string;
   globalChordType: string;
+  bassSubEnabled: boolean;
   // Actions
   addEvent: (event: Omit<MIDIEvent, 'id'>) => void;
   removeEvent: (eventId: string) => void;
@@ -29,6 +30,8 @@ interface MIDIStore extends SequencerState {
   loadPreset: (events: MIDIEvent[]) => void;
   setGlobalKeyRoot: (root: string) => void;
   setGlobalChordType: (chordType: string) => void;
+  bassSubEnabled: boolean;
+  setBassSubEnabled: (enabled: boolean) => void;
   
   // Utility
   getTrackEvents: (trackId: number) => MIDIEvent[];
@@ -47,6 +50,7 @@ export const useMIDIStore = create<MIDIStore>((set, get) => ({
   isPlaying: false,
   globalKeyRoot: 'C',
   globalChordType: 'Minor',
+  bassSubEnabled: false,
   
   // Event actions
   addEvent: (event) => {
@@ -173,6 +177,10 @@ export const useMIDIStore = create<MIDIStore>((set, get) => ({
   
   setGlobalChordType: (chordType) => {
     set({ globalChordType: chordType });
+  },
+  
+  setBassSubEnabled: (enabled) => {
+    set({ bassSubEnabled: enabled });
   },
   
   // Utility
