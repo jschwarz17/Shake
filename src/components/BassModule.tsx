@@ -27,9 +27,6 @@ export const BassModule: React.FC = () => {
     [events]
   );
 
-  const hasNoteAt = (step: number, note: number) =>
-    bassEvents.some((e) => e.step === step && e.note === note);
-
   const isInScale = (note: number) => chromatic || scaleNotes.has(note);
 
   const handleCellClick = (step: number, note: number) => {

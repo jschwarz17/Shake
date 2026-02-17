@@ -30,7 +30,6 @@ interface MIDIStore extends SequencerState {
   loadPreset: (events: MIDIEvent[]) => void;
   setGlobalKeyRoot: (root: string) => void;
   setGlobalChordType: (chordType: string) => void;
-  bassSubEnabled: boolean;
   setBassSubEnabled: (enabled: boolean) => void;
   
   // Utility
