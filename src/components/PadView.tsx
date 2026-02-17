@@ -79,7 +79,11 @@ const Pad: React.FC<PadProps> = ({ name, mode, onTrigger, onToggleMode, onHoldSt
   );
 };
 
-export const PadView: React.FC = () => {
+interface PadViewProps {
+  ensureInitialized?: () => Promise<void>;
+}
+
+export const PadView: React.FC<PadViewProps> = ({ ensureInitialized }) => {
   const tracks = useMIDIStore((state) => state.tracks);
   const events = useMIDIStore((state) => state.events);
   const currentStep = useMIDIStore((state) => state.currentStep);
@@ -158,7 +162,7 @@ export const PadView: React.FC = () => {
     holdRef.current = null;
   };
 
-  const handlePadTrigger = (trackId: number) => {
+  const handlePadTrigger = async (trackId: number) => {
     const track = tracks[trackId];
     if (!track) return;
 
@@ -177,6 +181,7 @@ export const PadView: React.FC = () => {
       });
     }, 150);
 
+    await ensureInitialized?.();
     toneEngine.triggerPad(trackId, track);
   };
 

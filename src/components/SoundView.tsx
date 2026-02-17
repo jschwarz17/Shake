@@ -241,16 +241,7 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
   const [audioBuffer, setAudioBuffer] = React.useState<AudioBuffer | null>(null);
   const [isLoadingSample, setIsLoadingSample] = React.useState(false);
   const [sampleError, setSampleError] = React.useState<string | null>(null);
-  const isVoiceTrack = track.name.toLowerCase() === 'voice';
-  const [showVoiceGenerator, setShowVoiceGenerator] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isVoiceTrack) {
-      setShowVoiceGenerator(false);
-      return;
-    }
-    setShowVoiceGenerator(!track.sample?.url);
-  }, [isVoiceTrack, track.sample?.url, trackId]);
+  const isVoiceTrack = trackId === 8 || track.name.toLowerCase() === 'voice';
 
   React.useEffect(() => {
     let cancelled = false;
@@ -472,21 +463,9 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           </button>
         </div>
       )}
-      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-        {isVoiceTrack && (
-          <button
-            type="button"
-            onClick={() => setShowVoiceGenerator(true)}
-            className="modern-btn px-4 py-2 rounded-lg text-sm border !border-cyan-300/70"
-          >
-            Redo Sample
-          </button>
-        )}
-      </div>
-
       {sampleError && <div className="mb-3 text-sm text-red-300">{sampleError}</div>}
 
-      {isVoiceTrack && showVoiceGenerator && (
+      {isVoiceTrack && (
         <div className="mb-4">
           <VoiceGenerator onUseSample={handleUseGeneratedVoiceSample} />
         </div>

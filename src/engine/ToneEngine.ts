@@ -2,6 +2,7 @@ import * as Tone from 'tone';
 import type { MIDIEvent, Track } from './types';
 import { calculateEventTimestamp } from './SwingCalculator';
 import { AdvancedDrumSynth } from '../synth/AdvancedDrumSynth';
+import { BASS_PRIMARY_URL, HH_CHH_URL, HH_OHH_URL, TRACK_ID_TO_SAMPLE_URL } from './defaultSamples';
 
 class ToneEngine {
   private trackParts: (Tone.Part | null)[] = Array(9).fill(null);
@@ -15,7 +16,10 @@ class ToneEngine {
   private masterVolume = 1;
   private bassSubPlayer: Tone.Player | null = null;
   private bassSubEnabled = false;
-  private readonly BASS_ROOT_MIDI = 36; // C2 - assumed root of bass sample
+  private activeBassPlayers: Tone.Player[] = [];
+  private bassFilter!: Tone.Filter; // lowpass at B3 to reduce digital artifacts
+  private readonly BASS_ROOT_MIDI = 24; // C1 - common for sub/bass samples; change to 36 if sample is C2
+  private readonly BASS_FILTER_FREQ = Tone.Frequency('B3').toFrequency(); // ~247 Hz
 
   /**
    * Initialize the audio engine and Tone.js Transport
@@ -28,6 +32,11 @@ class ToneEngine {
     (Tone.getContext().rawContext as any).latencyHint = 'interactive';
     
     this.masterGain = new Tone.Gain(this.masterVolume).toDestination();
+    this.bassFilter = new Tone.Filter({
+      frequency: this.BASS_FILTER_FREQ,
+      type: 'lowpass',
+      rolloff: -24,
+    }).connect(this.masterGain);
     
     // Configure Transport
     Tone.Transport.bpm.value = 120;
@@ -93,6 +102,15 @@ class ToneEngine {
       duration: 0.1,
     };
     if (track.mode === 'sample') {
+      const players = this.players.get(trackId);
+      const needsLoad = !players?.length || !players[0].buffer?.loaded;
+      if (needsLoad) {
+        let url: string | undefined;
+        if (trackId === 1) url = BASS_PRIMARY_URL;
+        else if (trackId === 3) url = track.sampleVariant === 'ohh' ? HH_OHH_URL : HH_CHH_URL;
+        else url = TRACK_ID_TO_SAMPLE_URL[trackId];
+        if (url) await this.loadSample(trackId, url);
+      }
       this.playSample(trackId, event, now, track);
     } else if (track.mode === 'fm') {
       this.initializeFMSynths([track]);
@@ -402,25 +420,49 @@ class ToneEngine {
     const players = this.players.get(1);
     if (!players?.length || !players[0].buffer?.loaded) return;
     const primary = players[0];
-    const playbackRate = Math.pow(2, (event.note - this.BASS_ROOT_MIDI) / 12);
+    let playbackRate = Math.pow(2, (event.note - this.BASS_ROOT_MIDI) / 12);
+    playbackRate = Math.max(0.25, Math.min(4, playbackRate));
     const vol = (event.velocity / 127) * track.volume;
+    const primaryGain = this.bassSubEnabled ? vol * 0.85 : vol;
 
-    const playOne = (buf: Tone.ToneAudioBuffer) => {
-      const p = new Tone.Player(buf).connect(this.masterGain);
-      p.volume.value = Tone.gainToDb(vol);
+    // Monophonic: stop any currently playing bass to avoid overlapping and digital artifacts
+    for (const p of this.activeBassPlayers) {
+      try {
+        p.stop(time);
+      } catch (_) {}
+    }
+    this.activeBassPlayers.length = 0;
+
+    const maxDuration = 2; // primary: cap playback (lowpass filter reduces artifacts)
+    const subMaxDuration = 1; // sub: short and punchy
+    const playOne = (buf: Tone.ToneAudioBuffer, gain: number) => {
+      const p = new Tone.Player(buf).connect(this.bassFilter);
+      p.volume.value = Tone.gainToDb(gain);
       p.playbackRate = playbackRate;
-      p.start(time, 0, buf.duration / playbackRate);
-      p.onstop = () => p.dispose();
+      const duration = Math.min(buf.duration / playbackRate, maxDuration);
+      p.start(time, 0, duration);
+      this.activeBassPlayers.push(p);
+      p.onstop = () => {
+        const i = this.activeBassPlayers.indexOf(p);
+        if (i >= 0) this.activeBassPlayers.splice(i, 1);
+        p.dispose();
+      };
     };
 
-    playOne(primary.buffer);
+    playOne(primary.buffer, primaryGain);
     if (this.bassSubEnabled && this.bassSubPlayer?.buffer?.loaded) {
       const sub = this.bassSubPlayer;
-      const p = new Tone.Player(sub.buffer).connect(this.masterGain);
-      p.volume.value = Tone.gainToDb(vol * 0.85);
+      const p = new Tone.Player(sub.buffer).connect(this.bassFilter);
+      p.volume.value = Tone.gainToDb(vol * 0.7);
       p.playbackRate = playbackRate;
-      p.start(time, 0, sub.buffer.duration / playbackRate);
-      p.onstop = () => p.dispose();
+      const subDuration = Math.min(sub.buffer.duration / playbackRate, subMaxDuration);
+      p.start(time, 0, subDuration);
+      this.activeBassPlayers.push(p);
+      p.onstop = () => {
+        const i = this.activeBassPlayers.indexOf(p);
+        if (i >= 0) this.activeBassPlayers.splice(i, 1);
+        p.dispose();
+      };
     }
   }
 
@@ -502,6 +544,7 @@ class ToneEngine {
     this.drumSynths.clear();
     this.standardSynths.clear();
     this.trackParts = Array(9).fill(null);
+    if (this.bassFilter) this.bassFilter.dispose();
     if (this.masterGain) this.masterGain.dispose();
     
     this.isInitialized = false;

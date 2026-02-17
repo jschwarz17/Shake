@@ -31,19 +31,22 @@ export const BassModule: React.FC = () => {
 
   const handleCellClick = (step: number, note: number) => {
     if (!isInScale(note)) return;
-    const existing = bassEvents.find((e) => e.step === step && e.note === note);
-    if (existing) {
-      removeEvent(existing.id);
-    } else {
-      addEvent({
-        trackId: BASS_TRACK_ID,
-        step,
-        note,
-        velocity: 100,
-        tick: step * 4,
-        duration: 0.1,
-      });
+    const existingThisCell = bassEvents.find((e) => e.step === step && e.note === note);
+    if (existingThisCell) {
+      removeEvent(existingThisCell.id);
+      return;
     }
+    // Monophonic: one note per step — remove any existing note on this step
+    const existingOnStep = bassEvents.find((e) => e.step === step);
+    if (existingOnStep) removeEvent(existingOnStep.id);
+    addEvent({
+      trackId: BASS_TRACK_ID,
+      step,
+      note,
+      velocity: 100,
+      tick: step * 4,
+      duration: 0.1,
+    });
   };
 
   const notesReversed = React.useMemo(() => {
@@ -57,16 +60,19 @@ export const BassModule: React.FC = () => {
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
         <h3 className="text-lg font-bold text-white">Bass</h3>
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-xs text-white/70">Sub</span>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <span className="text-sm font-medium text-white min-w-[2.5rem]">
+              Sub {bassSubEnabled ? 'On' : 'Off'}
+            </span>
             <button
               type="button"
               role="switch"
               aria-checked={bassSubEnabled}
+              aria-label={bassSubEnabled ? 'Sub bass on' : 'Sub bass off'}
               onClick={() => setBassSubEnabled(!bassSubEnabled)}
               className={`w-10 h-6 rounded-full border-2 transition-colors ${
                 bassSubEnabled
-                  ? 'bg-cyan-500 border-cyan-400'
+                  ? 'bg-cyan-500 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]'
                   : 'bg-black/50 border-white/30'
               }`}
             >
@@ -135,15 +141,18 @@ export const BassModule: React.FC = () => {
             {notesReversed.map((note) =>
               Array.from({ length: STEPS }, (_, step) => {
                 const hasNote = bassEvents.some((e) => e.step === step && e.note === note);
+                const noteActiveClass = hasNote
+                  ? '!bg-[linear-gradient(145deg,#5f9dff_0%,#3b82f6_45%,#1d4ed8_100%)] !border-white/45 !shadow-[0_0_14px_rgba(59,130,246,0.65),inset_0_1px_0_rgba(255,255,255,0.4)]'
+                  : '';
                 return (
                   <button
                     key={`${step}-${note}`}
                     type="button"
                     onClick={() => handleCellClick(step, note)}
                     disabled={!isInScale(note)}
-                    className={`min-w-0 rounded-sm transition-colors border ${
+                    className={`min-w-0 rounded-sm transition-colors !border-[0.5px] ${
                       hasNote
-                        ? 'bg-cyan-400 border-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.5)] hover:bg-cyan-300'
+                        ? noteActiveClass
                         : isInScale(note)
                           ? 'bg-white/15 border-white/10 hover:bg-white/30'
                           : 'bg-white/5 border-white/5 cursor-not-allowed opacity-50'

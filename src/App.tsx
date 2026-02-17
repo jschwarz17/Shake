@@ -91,12 +91,12 @@ function App() {
     toneEngine.setMasterVolume(masterVolume / 100);
   }, [masterVolume]);
 
-  // Update Tone.js when events or settings change
+  // Update Tone.js when events or settings change (including bass sub toggle)
   React.useEffect(() => {
     if (isInitialized) {
       toneEngine.updateAllTracks(tracks, events, bpm, globalSwing, { bassSubEnabled });
     }
-  }, [isInitialized, bpm, globalSwing, tracks, events]);
+  }, [isInitialized, bpm, globalSwing, tracks, events, bassSubEnabled]);
 
   // Play/Pause handler
   const handlePlayPause = async () => {
@@ -200,7 +200,7 @@ function App() {
 
       {/* Main Content - flex-1 min-h-0, overflow-hidden for pad view */}
       <main className={`flex-1 min-h-0 flex flex-col bg-black ${currentView === 'pad' ? 'overflow-hidden' : 'overflow-auto'}`}>
-        {currentView === 'pad' && <PadView />}
+        {currentView === 'pad' && <PadView ensureInitialized={handleInit} />}
         {currentView === 'sequencer' && <SequencerView />}
         {currentView === 'sounds' && <SoundsView />}
       </main>

@@ -75,15 +75,23 @@ export const SoundsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Content: Bass module, FM panel, or Sound view based on selected track */}
+      {/* Content: Bass module, FM panel, Voice/Sound view based on selected track */}
       {track && (
         selectedTrackId === 1 ? (
           <BassModule />
         ) : isFm ? (
           <FMTrackPanel trackId={selectedTrackId} onToggleMode={handleToggleMode} />
         ) : (
-          <div className="flex-1 min-h-0 overflow-auto">
-            <SoundView trackId={selectedTrackId} />
+          <div className={`flex-1 min-h-0 flex flex-col overflow-hidden ${selectedTrackId === 8 ? 'bg-[rgba(30,58,138,0.12)]' : ''} min-h-[200px]`}>
+            {selectedTrackId === 8 && (
+              <div className="flex-shrink-0 px-3 py-2 border-b border-blue-500/30">
+                <h3 className="text-lg font-bold text-blue-200">Voice</h3>
+                <p className="text-xs text-blue-200/70 mt-0.5">Generate or load a vocal sample, trim, and use Chop for step variation.</p>
+              </div>
+            )}
+            <div className="flex-1 min-h-0 overflow-auto p-3 min-h-[180px]">
+              <SoundView trackId={selectedTrackId} />
+            </div>
           </div>
         )
       )}
