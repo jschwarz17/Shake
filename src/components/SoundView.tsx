@@ -425,22 +425,25 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
     }
   };
 
+  const compact = isVoiceTrack;
   return (
-    <div className="p-3 sm:p-6">
-      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-        <h2 className="text-white text-2xl font-bold">
-          Sound View - {track.name}
-        </h2>
-        <button
-          type="button"
-          onClick={() => void toggleTrackModeFromSoundView()}
-          className="modern-btn px-4 py-2 rounded-lg text-sm"
-        >
-          Mode: {track.mode === 'fm' ? 'FM' : 'Sample'} (Switch)
-        </button>
-      </div>
-      <div className="mb-4 flex items-center gap-3 flex-wrap">
-        <span className="text-white/70 text-xs font-medium">Track volume</span>
+    <div className={compact ? 'p-2' : 'p-3 sm:p-6'}>
+      {!compact && (
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <h2 className="text-white text-2xl font-bold">
+            Sound View - {track.name}
+          </h2>
+          <button
+            type="button"
+            onClick={() => void toggleTrackModeFromSoundView()}
+            className="modern-btn px-4 py-2 rounded-lg text-sm"
+          >
+            Mode: {track.mode === 'fm' ? 'FM' : 'Sample'} (Switch)
+          </button>
+        </div>
+      )}
+      <div className={`flex items-center gap-3 flex-wrap ${compact ? 'mb-2' : 'mb-4'}`}>
+        {!compact && <span className="text-white/70 text-xs font-medium">Track volume</span>}
         <input
           type="range"
           min={0}
@@ -450,9 +453,18 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           className="w-32 accent-cyan-500"
         />
         <span className="text-cyan-300 text-sm font-mono w-10">{Math.round((track.volume ?? 1) * 100)}%</span>
+        {compact && (
+          <button
+            type="button"
+            onClick={() => void toggleTrackModeFromSoundView()}
+            className="ml-1 modern-btn px-2 py-1 rounded text-xs"
+          >
+            {track.mode === 'fm' ? 'FM' : 'Sample'}
+          </button>
+        )}
       </div>
       {isHHTrack && (
-        <div className="mb-4 flex items-center gap-3 flex-wrap">
+        <div className={`flex items-center gap-3 flex-wrap ${compact ? 'mb-2' : 'mb-4'}`}>
           <span className="text-white/70 text-xs font-medium">HH type</span>
           <button
             type="button"
@@ -463,16 +475,16 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           </button>
         </div>
       )}
-      {sampleError && <div className="mb-3 text-sm text-red-300">{sampleError}</div>}
+      {sampleError && <div className="mb-2 text-sm text-red-300">{sampleError}</div>}
 
       {isVoiceTrack && (
-        <div className="mb-4">
+        <div className={compact ? 'mb-2' : 'mb-4'}>
           <VoiceGenerator onUseSample={handleUseGeneratedVoiceSample} />
         </div>
       )}
 
       {hasSample && audioBuffer ? (
-        <div className="space-y-5">
+        <div className={compact ? 'space-y-2' : 'space-y-5'}>
           <div className="relative">
             <Waveform
               waveformData={waveformData}
@@ -484,10 +496,10 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
             />
           </div>
 
-          <div className="w-full rounded-md border border-white/35 bg-black/85 px-3 py-2">
-            <div className="grid grid-cols-1 gap-3">
+          <div className={`w-full rounded border border-white/35 bg-black/85 ${compact ? 'px-2 py-1.5' : 'px-3 py-2'}`}>
+            <div className={`grid grid-cols-1 ${compact ? 'gap-2' : 'gap-3'}`}>
               <div className="min-w-0">
-                <div className="flex items-center justify-between mb-1">
+                <div className={`flex items-center justify-between ${compact ? 'mb-0.5' : 'mb-1'}`}>
                   <span className="text-xs font-semibold text-cyan-200">Start</span>
                   <span className="text-xs tabular-nums text-cyan-100">{start.toFixed(3)}s</span>
                 </div>
@@ -502,7 +514,7 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
                 />
               </div>
               <div className="min-w-0">
-                <div className="flex items-center justify-between mb-1">
+                <div className={`flex items-center justify-between ${compact ? 'mb-0.5' : 'mb-1'}`}>
                   <span className="text-xs font-semibold text-blue-200">End</span>
                   <span className="text-xs tabular-nums text-blue-100">{end.toFixed(3)}s</span>
                 </div>
@@ -520,11 +532,11 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           </div>
 
           {isVoiceTrack && (
-          <div className="w-full rounded-md border border-white/35 bg-black/85 px-3 py-2">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className={`w-full rounded border border-white/35 bg-black/85 ${compact ? 'px-2 py-1.5' : 'px-3 py-2'}`}>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
                 <span className="text-xs font-semibold text-cyan-200">Chop vocal</span>
-                <p className="text-[10px] text-white/50 mt-0.5">4 even parts · each step plays one part (same step = same chop)</p>
+                {!compact && <p className="text-[10px] text-white/50 mt-0.5">4 even parts · each step plays one part</p>}
               </div>
               <button
                 type="button"
@@ -546,28 +558,30 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           </div>
         )}
 
-          <div className="bg-gray-900 p-4 rounded-lg">
-            <h3 className="text-white font-medium mb-2">Sample Info</h3>
-            <div className="text-gray-400 text-sm space-y-1">
-              <p>Name: {track.sample?.name ?? track.name}</p>
-              <p>Duration: {maxDuration.toFixed(3)}s</p>
-              <p>
-                Sample Rate: {audioBuffer.sampleRate} Hz
-              </p>
-              <p>Channels: {audioBuffer.numberOfChannels}</p>
+          {!compact && (
+            <div className="bg-gray-900 p-4 rounded-lg">
+              <h3 className="text-white font-medium mb-2">Sample Info</h3>
+              <div className="text-gray-400 text-sm space-y-1">
+                <p>Name: {track.sample?.name ?? track.name}</p>
+                <p>Duration: {maxDuration.toFixed(3)}s</p>
+                <p>Sample Rate: {audioBuffer.sampleRate} Hz</p>
+                <p>Channels: {audioBuffer.numberOfChannels}</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       ) : hasSample || isLoadingSample ? (
-        <div className="text-center py-12 border-2 border-dashed border-gray-700 rounded-lg">
-          <p className="text-gray-300">{isLoadingSample ? 'Loading sample waveform...' : 'Preparing sample waveform...'}</p>
+        <div className={`text-center border-2 border-dashed border-gray-700 rounded-lg ${compact ? 'py-4' : 'py-12'}`}>
+          <p className="text-gray-300 text-sm">{isLoadingSample ? 'Loading...' : 'Preparing waveform...'}</p>
         </div>
       ) : (
-        <div className="text-center py-12 border-2 border-dashed border-gray-700 rounded-lg">
-          <p className="text-gray-400">{isVoiceTrack ? 'Generate a vocal sample above to begin.' : 'No sample loaded for this track'}</p>
-          <p className="text-gray-500 text-sm mt-2">
-            {isVoiceTrack ? 'Enter up to 10 words, set Global Key (top right), then generate.' : 'Click Play once to load defaults, or load a sample from Pad view'}
-          </p>
+        <div className={`text-center border-2 border-dashed border-gray-700 rounded-lg ${compact ? 'py-4' : 'py-12'}`}>
+          <p className="text-gray-400 text-sm">{isVoiceTrack ? 'Generate a vocal above to begin.' : 'No sample loaded for this track'}</p>
+          {!compact && (
+            <p className="text-gray-500 text-sm mt-2">
+              {isVoiceTrack ? 'Enter up to 10 words, set Global Key (top right), then generate.' : 'Click Play once to load defaults, or load a sample from Pad view'}
+            </p>
+          )}
         </div>
       )}
     </div>

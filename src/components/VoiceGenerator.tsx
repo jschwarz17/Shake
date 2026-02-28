@@ -57,7 +57,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
       waveColor: '#60A5FA',
       progressColor: '#22d3ee',
       cursorColor: '#93C5FD',
-      height: 96,
+      height: 48,
       barWidth: 2,
       barGap: 1,
       barRadius: 2,
@@ -151,14 +151,13 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
   };
 
   return (
-    <section className="relative isolate rounded-xl border border-cyan-400/35 bg-[linear-gradient(180deg,rgba(13,22,45,0.95)_0%,rgba(4,8,20,0.98)_100%)] p-3 sm:p-4 shadow-[0_0_20px_rgba(34,211,238,0.14)]">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base sm:text-lg font-bold text-cyan-100">VOICE MODULE</h3>
-        <span className="text-[10px] uppercase tracking-widest text-cyan-300/80">ElevenLabs</span>
+    <section className="relative isolate rounded-lg border border-cyan-400/35 bg-[linear-gradient(180deg,rgba(13,22,45,0.95)_0%,rgba(4,8,20,0.98)_100%)] p-2 shadow-[0_0_12px_rgba(34,211,238,0.12)]">
+      <div className="mb-1.5">
+        <h3 className="text-sm font-bold text-cyan-100">VOICE</h3>
       </div>
 
-      <div className="space-y-2 relative z-[60] pointer-events-auto">
-        <label className="text-xs uppercase tracking-wider text-white/70">Phrase (max 10 words)</label>
+      <div className="space-y-1 relative z-[60] pointer-events-auto">
+        <label className="text-[10px] uppercase tracking-wider text-white/60">Phrase (max 10 words)</label>
         <textarea
           value={phrase}
           onChange={(e) => handlePhraseChange(e.target.value)}
@@ -167,12 +166,12 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
           onKeyDown={(e) => e.stopPropagation()}
           onFocus={(e) => e.currentTarget.select()}
           placeholder="e.g. all night long"
-          rows={2}
+          rows={1}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck={false}
-          className="relative z-[70] pointer-events-auto w-full rounded-lg px-3 py-2 text-sm outline-none resize-none"
+          className="relative z-[70] pointer-events-auto w-full rounded px-2 py-1.5 text-sm outline-none resize-none"
           style={{
             backgroundColor: '#0b1220',
             color: '#ffffff',
@@ -180,12 +179,12 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
             border: '1px solid rgba(255,255,255,0.25)',
           }}
         />
-        <div className="text-[11px] text-white/60">{wordCount}/{MAX_WORDS} words</div>
+        <div className="text-[10px] text-white/50">{wordCount}/{MAX_WORDS} words</div>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-2 space-y-1.5">
         <div>
-          <span className="text-[10px] uppercase tracking-wider text-white/60 block mb-1.5">1. Voice tone</span>
+          <span className="text-[9px] uppercase tracking-wider text-white/50 block mb-1">1. Tone</span>
           <div className="flex flex-wrap gap-1.5">
             {VOICE_TONES.map((t) => (
               <button
@@ -204,7 +203,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
           </div>
         </div>
         <div>
-          <span className="text-[10px] uppercase tracking-wider text-white/60 block mb-1.5">2. Vibe</span>
+          <span className="text-[9px] uppercase tracking-wider text-white/50 block mb-1">2. Vibe</span>
           <div className="flex flex-wrap gap-1.5">
             {VIBES.map((v) => (
               <button
@@ -223,7 +222,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
           </div>
         </div>
         <div>
-          <span className="text-[10px] uppercase tracking-wider text-white/60 block mb-1.5">3. Effects</span>
+          <span className="text-[9px] uppercase tracking-wider text-white/50 block mb-1">3. Effects</span>
           <div className="flex flex-wrap gap-1.5">
             {EFFECTS.map(({ id, label }) => (
               <button
@@ -243,42 +242,39 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-1.5">
         <button
           type="button"
           onClick={handleGenerate}
           disabled={isGenerating || isApplying}
-          className="modern-btn px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+          className="modern-btn px-3 py-1.5 rounded text-xs disabled:opacity-50"
         >
-          {isGenerating ? 'Generating...' : isApplying ? 'Loading Slot...' : 'Generate Vocal'}
+          {isGenerating ? 'Generating...' : isApplying ? 'Loading...' : 'Generate'}
         </button>
         {audioUrl && (
-          <>
-            <button
-              type="button"
-              onClick={() => waveSurferRef.current?.playPause()}
-              className="modern-btn px-4 py-2 rounded-lg text-sm"
-            >
-              {isPlaying ? 'Pause' : 'Play'}
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => waveSurferRef.current?.playPause()}
+            className="modern-btn px-3 py-1.5 rounded text-xs"
+          >
+            {isPlaying ? 'Pause' : 'Play'}
+          </button>
         )}
       </div>
 
-      <div className="mt-3 text-[11px] text-white/60">
-        Prompt: Acapella vocal in {globalKeyRoot} {globalChordType}
-        {voiceTone && `, ${voiceTone.toLowerCase()} tone`}
-        {vibe && `, ${vibe.toLowerCase()} vibe`}
-        {effect && `, ${EFFECTS.find((e) => e.id === effect)?.prompt}`}
-        . Short phrase (5s max).
+      <div className="mt-1.5 text-[9px] text-white/50 leading-tight">
+        {globalKeyRoot} {globalChordType}
+        {voiceTone && ` · ${voiceTone.toLowerCase()}`}
+        {vibe && ` · ${vibe.toLowerCase()}`}
+        {effect && ` · ${effect}`}
       </div>
 
-      {error && <div className="mt-2 text-sm text-red-300">{error}</div>}
+      {error && <div className="mt-1 text-xs text-red-300">{error}</div>}
 
       {audioUrl && (
-        <div className="mt-3 rounded-lg border border-white/20 bg-black/60 p-2">
-          <div ref={waveformRef} />
-          <div className="text-[11px] text-white/60 mt-1">Preview length: {duration.toFixed(2)}s (trimmed to 5s max on load)</div>
+        <div className="mt-2 rounded border border-white/20 bg-black/60 p-1.5">
+          <div ref={waveformRef} style={{ minHeight: 48 }} />
+          <div className="text-[9px] text-white/50 mt-0.5">{duration.toFixed(2)}s</div>
         </div>
       )}
     </section>
