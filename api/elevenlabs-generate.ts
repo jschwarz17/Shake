@@ -65,7 +65,7 @@ export default async function handler(req: any, res: any) {
       prompt += `, ${VIBE_PROMPTS[vibe]}`;
     }
     if (effect && typeof effect === 'string' && EFFECT_PROMPTS[effect]) {
-      prompt += `, ${EFFECT_PROMPTS[effect]}`;
+      prompt += `, ${EFFECT_PROMPTS[effect]} Make this effect quite pronounced.`;
     }
     prompt += ', short phrase, maximum 5 seconds.';
 
