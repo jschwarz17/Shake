@@ -191,9 +191,9 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
                 key={t}
                 type="button"
                 onClick={() => setVoiceTone((v) => (v === t ? null : t))}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors border ${
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all border-2 ${
                   voiceTone === t
-                    ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100'
+                    ? 'bg-cyan-500 border-cyan-300 text-white shadow-[0_0_10px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300/80'
                     : 'bg-white/5 border-white/20 text-white/80 hover:border-white/40'
                 }`}
               >
@@ -210,9 +210,9 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
                 key={v}
                 type="button"
                 onClick={() => setVibe((prev) => (prev === v ? null : v))}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors border ${
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all border-2 ${
                   vibe === v
-                    ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100'
+                    ? 'bg-cyan-500 border-cyan-300 text-white shadow-[0_0_10px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300/80'
                     : 'bg-white/5 border-white/20 text-white/80 hover:border-white/40'
                 }`}
               >
@@ -229,9 +229,9 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
                 key={id}
                 type="button"
                 onClick={() => setEffect((e) => (e === id ? null : id))}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors border ${
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-all border-2 ${
                   effect === id
-                    ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100'
+                    ? 'bg-cyan-500 border-cyan-300 text-white shadow-[0_0_10px_rgba(34,211,238,0.5)] ring-2 ring-cyan-300/80'
                     : 'bg-white/5 border-white/20 text-white/80 hover:border-white/40'
                 }`}
               >

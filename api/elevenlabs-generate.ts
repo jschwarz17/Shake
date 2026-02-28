@@ -33,20 +33,36 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
+    // Hardcoded prompt descriptions — passed verbatim to Eleven Labs when user selects an option
+    const VOICE_TONE_PROMPTS: Record<string, string> = {
+      Raspy: 'Apply a gritty, textured rasp with a gravelly and slightly hoarse vocal quality.',
+      Airy: 'Deliver the vocals with a soft, breathy, and whispered tone full of atmospheric air.',
+      'Deep bass': 'Emphasize a low-pitched, resonant chest voice with a heavy and rumbling bass presence.',
+      Trebly: 'Boost the high-end frequencies for a sharp, bright, and thin vocal with a crisp bite.',
+    };
+
+    const VIBE_PROMPTS: Record<string, string> = {
+      Moody: 'Infuse the performance with a somber, dark, and atmospheric mood that feels heavy and introspective.',
+      Upbeat: 'Sing with a bright, cheerful, and fast-paced energy that feels optimistic and lively.',
+      Energetic: 'Deliver a high-intensity, powerful, and dynamic performance with a punchy and driven delivery.',
+      Angsty: 'Channel a sense of raw frustration and emotional strain with an edgy, tense vocal style.',
+      Emo: 'Perform with deep melancholy and dramatic vulnerability, emphasizing a raw and expressive sadness.',
+    };
+
     const EFFECT_PROMPTS: Record<string, string> = {
-      Radio: 'processed to sound like it came through an old AM radio',
-      Phone: 'processed to sound like someone singing through a 90s phone',
-      Bullhorn: 'processed to sound like singing through a bullhorn',
-      Echo: 'with an 8th note repeating delay effect',
-      Underwater: 'processed to sound like singing underwater',
+      Radio: 'Process the vocals with narrow bandwidth and static to sound like they are being sung through a vintage AM radio.',
+      Phone: 'Apply a lo-fi, compressed filter to mimic the thin and tinny audio quality of a 1990s landline telephone.',
+      Bullhorn: 'Add mid-range distortion and metallic projection to simulate a vocal being shouted through a handheld megaphone.',
+      Echo: 'Incorporate a rhythmic 8th note delay effect that creates a clean, spacious, and repeating echo.',
+      Underwater: 'Apply a heavy low-pass filter and muffled resonance so the singer sounds half-audible and completely submerged underwater.',
     };
 
     let prompt = `Acapella vocal singing: ${safePhrase}, in the key of ${note} ${chordType}, dry studio quality`;
-    if (voiceTone && typeof voiceTone === 'string') {
-      prompt += `, ${String(voiceTone).toLowerCase()} vocal tone`;
+    if (voiceTone && typeof voiceTone === 'string' && VOICE_TONE_PROMPTS[voiceTone]) {
+      prompt += `, ${VOICE_TONE_PROMPTS[voiceTone]}`;
     }
-    if (vibe && typeof vibe === 'string') {
-      prompt += `, ${String(vibe).toLowerCase()} vibe`;
+    if (vibe && typeof vibe === 'string' && VIBE_PROMPTS[vibe]) {
+      prompt += `, ${VIBE_PROMPTS[vibe]}`;
     }
     if (effect && typeof effect === 'string' && EFFECT_PROMPTS[effect]) {
       prompt += `, ${EFFECT_PROMPTS[effect]}`;
