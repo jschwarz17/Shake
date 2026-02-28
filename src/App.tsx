@@ -30,6 +30,9 @@ function App() {
   const events = useMIDIStore((state) => state.events);
   const updateTrack = useMIDIStore((state) => state.updateTrack);
   const bassSubEnabled = useMIDIStore((state) => state.bassSubEnabled);
+  const freezeActive = useMIDIStore((state) => state.freezeActive);
+  const freezeStep = useMIDIStore((state) => state.freezeStep);
+  const halfActive = useMIDIStore((state) => state.halfActive);
 
   // Initialize Tone.js on first user interaction
   const handleInit = async () => {
@@ -91,12 +94,16 @@ function App() {
     toneEngine.setMasterVolume(masterVolume / 100);
   }, [masterVolume]);
 
-  // Update Tone.js when events or settings change (including bass sub toggle)
   React.useEffect(() => {
     if (isInitialized) {
-      toneEngine.updateAllTracks(tracks, events, bpm, globalSwing, { bassSubEnabled });
+      toneEngine.updateAllTracks(tracks, events, bpm, globalSwing, {
+        bassSubEnabled,
+        freezeActive,
+        freezeStep,
+        halfActive,
+      });
     }
-  }, [isInitialized, bpm, globalSwing, tracks, events, bassSubEnabled]);
+  }, [isInitialized, bpm, globalSwing, tracks, events, bassSubEnabled, freezeActive, freezeStep, halfActive]);
 
   // Play/Pause handler
   const handlePlayPause = async () => {

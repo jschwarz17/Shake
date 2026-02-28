@@ -17,9 +17,10 @@ class ToneEngine {
   private bassSubPlayer: Tone.Player | null = null;
   private bassSubEnabled = false;
   private activeBassPlayers: Tone.Player[] = [];
-  private bassFilter!: Tone.Filter; // lowpass at B3 to reduce digital artifacts
-  private readonly BASS_ROOT_MIDI = 24; // C1 - common for sub/bass samples; change to 36 if sample is C2
-  private readonly BASS_FILTER_FREQ = Tone.Frequency('B3').toFrequency(); // ~247 Hz
+  private bassFilter!: Tone.Filter;
+  private djFilter!: Tone.Filter; // highpass for DJ filter effect
+  private readonly BASS_ROOT_MIDI = 24;
+  private readonly BASS_FILTER_FREQ = Tone.Frequency('B3').toFrequency();
 
   /**
    * Initialize the audio engine and Tone.js Transport
@@ -31,7 +32,13 @@ class ToneEngine {
     Tone.getContext().lookAhead = 0.01;
     (Tone.getContext().rawContext as any).latencyHint = 'interactive';
     
-    this.masterGain = new Tone.Gain(this.masterVolume).toDestination();
+    this.djFilter = new Tone.Filter({
+      frequency: 20,
+      type: 'highpass',
+      rolloff: -12,
+      Q: 1,
+    }).toDestination();
+    this.masterGain = new Tone.Gain(this.masterVolume).connect(this.djFilter);
     this.bassFilter = new Tone.Filter({
       frequency: this.BASS_FILTER_FREQ,
       type: 'lowpass',
@@ -233,6 +240,19 @@ class ToneEngine {
     this.bassSubEnabled = enabled;
   }
 
+  setDJFilter(freq: number, q: number) {
+    if (this.djFilter) {
+      this.djFilter.frequency.rampTo(freq, 0.05);
+      this.djFilter.Q.value = q;
+    }
+  }
+
+  setHalf(active: boolean) {
+    if (this.isInitialized) {
+      Tone.Transport.loopEnd = active ? '2n' : '1m';
+    }
+  }
+
   /**
    * Create advanced drum synth for a track (Kick/Snare)
    */
@@ -311,43 +331,46 @@ class ToneEngine {
     events: MIDIEvent[],
     bpm: number,
     globalSwing: number,
-    allTracks: Track[]
+    allTracks: Track[],
+    effectOptions?: { freezeActive?: boolean; freezeStep?: number; halfActive?: boolean }
   ) {
-    // Dispose old part if exists
     if (this.trackParts[trackId]) {
       this.trackParts[trackId]!.stop();
       this.trackParts[trackId]!.dispose();
       this.trackParts[trackId] = null;
     }
 
-    // Filter events for this track
-    const trackEvents = events.filter((e) => e.trackId === trackId);
-    
-    if (trackEvents.length === 0) {
-      return; // No events to schedule
+    let trackEvents = events.filter((e) => e.trackId === trackId);
+
+    if (effectOptions?.halfActive) {
+      trackEvents = trackEvents.filter((e) => e.step < 8);
     }
 
-    // Check if any track has solo enabled
-    const hasSoloTracks = allTracks.some(t => t.solo);
+    if (effectOptions?.freezeActive && effectOptions.freezeStep !== undefined) {
+      const frozenEvents = trackEvents.filter((e) => e.step === effectOptions.freezeStep);
+      const steps = effectOptions.halfActive ? 8 : 16;
+      trackEvents = [];
+      for (let step = 0; step < steps; step++) {
+        for (const fe of frozenEvents) {
+          trackEvents.push({ ...fe, id: `frz-${fe.id}-${step}`, step, tick: step * 4 });
+        }
+      }
+    }
 
-    // Calculate timestamps with swing
+    if (trackEvents.length === 0) return;
+
+    const hasSoloTracks = allTracks.some((t) => t.solo);
+    const loopEnd = effectOptions?.halfActive ? '2n' : '1m';
+
     const eventsWithTimestamps = trackEvents.map((event) => {
-      const timestamp = calculateEventTimestamp(
-        event.step,
-        bpm,
-        globalSwing,
-        track.swing
-      );
+      const timestamp = calculateEventTimestamp(event.step, bpm, globalSwing, track.swing);
       return [timestamp, event] as [number, MIDIEvent];
     });
 
-    // Create new Tone.Part
     const part = new Tone.Part((time, event: MIDIEvent) => {
-      // Check mute/solo logic
       if (track.mute) return;
       if (hasSoloTracks && !track.solo) return;
-      
-      // Play sound
+
       if (track.mode === 'sample') {
         this.playSample(trackId, event, time, track);
       } else if (track.mode === 'fm') {
@@ -356,7 +379,7 @@ class ToneEngine {
     }, eventsWithTimestamps);
 
     part.loop = true;
-    part.loopEnd = '1m';
+    part.loopEnd = loopEnd;
     part.start(0);
 
     this.trackParts[trackId] = part;
@@ -502,16 +525,24 @@ class ToneEngine {
     events: MIDIEvent[],
     bpm: number,
     globalSwing: number,
-    options?: { bassSubEnabled?: boolean }
+    options?: {
+      bassSubEnabled?: boolean;
+      freezeActive?: boolean;
+      freezeStep?: number;
+      halfActive?: boolean;
+    }
   ) {
     this.setBPM(bpm);
     if (options?.bassSubEnabled !== undefined) this.bassSubEnabled = options.bassSubEnabled;
-    
-    // Ensure all FM synths exist
+    this.setHalf(!!options?.halfActive);
     this.initializeFMSynths(tracks);
-    
+
     tracks.forEach((track) => {
-      this.updateTrackSequence(track.id, track, events, bpm, globalSwing, tracks);
+      this.updateTrackSequence(track.id, track, events, bpm, globalSwing, tracks, {
+        freezeActive: options?.freezeActive,
+        freezeStep: options?.freezeStep,
+        halfActive: options?.halfActive,
+      });
     });
   }
 
@@ -545,6 +576,7 @@ class ToneEngine {
     this.standardSynths.clear();
     this.trackParts = Array(9).fill(null);
     if (this.bassFilter) this.bassFilter.dispose();
+    if (this.djFilter) this.djFilter.dispose();
     if (this.masterGain) this.masterGain.dispose();
     
     this.isInitialized = false;

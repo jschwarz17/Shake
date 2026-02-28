@@ -6,6 +6,16 @@ interface MIDIStore extends SequencerState {
   globalKeyRoot: string;
   globalChordType: string;
   bassSubEnabled: boolean;
+
+  // DJ effects
+  freezeActive: boolean;
+  freezeStep: number;
+  halfActive: boolean;
+
+  // Sequence pages (up to 6)
+  pages: MIDIEvent[][];
+  currentPageIndex: number;
+
   // Actions
   addEvent: (event: Omit<MIDIEvent, 'id'>) => void;
   removeEvent: (eventId: string) => void;
@@ -31,6 +41,14 @@ interface MIDIStore extends SequencerState {
   setGlobalKeyRoot: (root: string) => void;
   setGlobalChordType: (chordType: string) => void;
   setBassSubEnabled: (enabled: boolean) => void;
+
+  // DJ effect actions
+  toggleFreeze: () => void;
+  toggleHalf: () => void;
+
+  // Page actions
+  createNewPage: () => void;
+  setCurrentPage: (index: number) => void;
   
   // Utility
   getTrackEvents: (trackId: number) => MIDIEvent[];
@@ -50,6 +68,11 @@ export const useMIDIStore = create<MIDIStore>((set, get) => ({
   globalKeyRoot: 'C',
   globalChordType: 'Minor',
   bassSubEnabled: false,
+  freezeActive: false,
+  freezeStep: 0,
+  halfActive: false,
+  pages: [[]],
+  currentPageIndex: 0,
   
   // Event actions
   addEvent: (event) => {
@@ -181,7 +204,50 @@ export const useMIDIStore = create<MIDIStore>((set, get) => ({
   setBassSubEnabled: (enabled) => {
     set({ bassSubEnabled: enabled });
   },
-  
+
+  toggleFreeze: () => {
+    set((state) => {
+      if (state.freezeActive) {
+        return { freezeActive: false };
+      }
+      return { freezeActive: true, freezeStep: state.currentStep };
+    });
+  },
+
+  toggleHalf: () => {
+    set((state) => ({ halfActive: !state.halfActive }));
+  },
+
+  createNewPage: () => {
+    set((state) => {
+      if (state.pages.length >= 6) return {};
+      const newPages = [...state.pages];
+      newPages[state.currentPageIndex] = [...state.events];
+      const kickSnareEvents = state.events
+        .filter((e) => e.trackId === 0 || e.trackId === 2)
+        .map((e) => ({ ...e, id: generateId() }));
+      newPages.push(kickSnareEvents);
+      return {
+        pages: newPages,
+        currentPageIndex: newPages.length - 1,
+        events: kickSnareEvents,
+      };
+    });
+  },
+
+  setCurrentPage: (index) => {
+    set((state) => {
+      if (index < 0 || index >= state.pages.length || index === state.currentPageIndex) return {};
+      const newPages = [...state.pages];
+      newPages[state.currentPageIndex] = [...state.events];
+      return {
+        pages: newPages,
+        currentPageIndex: index,
+        events: newPages[index],
+      };
+    });
+  },
+
   // Utility
   getTrackEvents: (trackId) => {
     return get().events.filter((e) => e.trackId === trackId);
