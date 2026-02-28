@@ -12,7 +12,7 @@ export const DEFAULT_DRUM_SAMPLES = {
   hihatOpen: `${BASE_URL}/acoustic-kit/hihat.mp3`,
   clap: `${BASE_URL}/breakbeat8/snare.mp3`,
   rim: `${BASE_URL}/CR78/hihat.mp3`,
-  shaker: `${BASE_URL}/breakbeat9/hihat.mp3`,
+  shaker: '/samples/shaker.wav',
   crash: `${BASE_URL}/Techno/tom3.mp3`,
   voice: `${BASE_URL}/acoustic-kit/kick.mp3`, // placeholder until user assigns vocal sample
 };

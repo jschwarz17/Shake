@@ -4,6 +4,20 @@ import { useMIDIStore } from '../engine/MIDIStore';
 
 const MAX_WORDS = 10;
 
+const VOICE_TONES = ['Raspy', 'Airy', 'Deep bass', 'Trebly'] as const;
+const VIBES = ['Moody', 'Upbeat', 'Energetic', 'Angsty', 'Emo'] as const;
+const EFFECTS = [
+  { id: 'Radio', label: 'Radio', prompt: 'processed to sound like it came through an old AM radio' },
+  { id: 'Phone', label: 'Phone', prompt: 'processed to sound like someone singing through a 90s phone' },
+  { id: 'Bullhorn', label: 'Bullhorn', prompt: 'processed to sound like singing through a bullhorn' },
+  { id: 'Echo', label: 'Echo', prompt: 'with an 8th note repeating delay effect' },
+  { id: 'Underwater', label: 'Underwater', prompt: 'processed to sound like singing underwater' },
+] as const;
+
+type VoiceTone = (typeof VOICE_TONES)[number];
+type Vibe = (typeof VIBES)[number];
+type EffectId = (typeof EFFECTS)[number]['id'];
+
 interface VoiceGeneratorProps {
   onUseSample: (url: string, name: string, duration: number) => Promise<void>;
 }
@@ -12,6 +26,9 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
   const [phrase, setPhrase] = React.useState('');
   const globalKeyRoot = useMIDIStore((s) => s.globalKeyRoot);
   const globalChordType = useMIDIStore((s) => s.globalChordType);
+  const [voiceTone, setVoiceTone] = React.useState<VoiceTone | null>(null);
+  const [vibe, setVibe] = React.useState<Vibe | null>(null);
+  const [effect, setEffect] = React.useState<EffectId | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [audioUrl, setAudioUrl] = React.useState<string | null>(null);
@@ -93,7 +110,15 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
       const res = await fetch('/api/elevenlabs-generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phrase: phrase.trim(), note: globalKeyRoot, chordType: globalChordType, maxSeconds: 5 }),
+        body: JSON.stringify({
+          phrase: phrase.trim(),
+          note: globalKeyRoot,
+          chordType: globalChordType,
+          maxSeconds: 5,
+          voiceTone: voiceTone ?? undefined,
+          vibe: vibe ?? undefined,
+          effect: effect ?? undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -158,6 +183,66 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
         <div className="text-[11px] text-white/60">{wordCount}/{MAX_WORDS} words</div>
       </div>
 
+      <div className="mt-4 space-y-3">
+        <div>
+          <span className="text-[10px] uppercase tracking-wider text-white/60 block mb-1.5">1. Voice tone</span>
+          <div className="flex flex-wrap gap-1.5">
+            {VOICE_TONES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setVoiceTone((v) => (v === t ? null : t))}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors border ${
+                  voiceTone === t
+                    ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100'
+                    : 'bg-white/5 border-white/20 text-white/80 hover:border-white/40'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase tracking-wider text-white/60 block mb-1.5">2. Vibe</span>
+          <div className="flex flex-wrap gap-1.5">
+            {VIBES.map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setVibe((prev) => (prev === v ? null : v))}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors border ${
+                  vibe === v
+                    ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100'
+                    : 'bg-white/5 border-white/20 text-white/80 hover:border-white/40'
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase tracking-wider text-white/60 block mb-1.5">3. Effects</span>
+          <div className="flex flex-wrap gap-1.5">
+            {EFFECTS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setEffect((e) => (e === id ? null : id))}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors border ${
+                  effect === id
+                    ? 'bg-cyan-500/30 border-cyan-400 text-cyan-100'
+                    : 'bg-white/5 border-white/20 text-white/80 hover:border-white/40'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
@@ -181,7 +266,11 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
       </div>
 
       <div className="mt-3 text-[11px] text-white/60">
-        Prompt: Acapella vocal singing phrase in {globalKeyRoot} {globalChordType} (set in Global Key, top right), dry studio quality, short phrase (5s max).
+        Prompt: Acapella vocal in {globalKeyRoot} {globalChordType}
+        {voiceTone && `, ${voiceTone.toLowerCase()} tone`}
+        {vibe && `, ${vibe.toLowerCase()} vibe`}
+        {effect && `, ${EFFECTS.find((e) => e.id === effect)?.prompt}`}
+        . Short phrase (5s max).
       </div>
 
       {error && <div className="mt-2 text-sm text-red-300">{error}</div>}

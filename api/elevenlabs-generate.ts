@@ -17,7 +17,7 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const { phrase, note, chordType } = req.body ?? {};
+    const { phrase, note, chordType, voiceTone, vibe, effect } = req.body ?? {};
     const safePhrase = String(phrase ?? '').trim();
     const words = safePhrase.split(/\s+/).filter(Boolean);
     if (!safePhrase || words.length === 0 || words.length > 10) {
@@ -33,7 +33,25 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const prompt = `Acapella vocal singing: ${safePhrase}, in the key of ${note} ${chordType}, dry studio quality, short phrase, maximum 5 seconds.`;
+    const EFFECT_PROMPTS: Record<string, string> = {
+      Radio: 'processed to sound like it came through an old AM radio',
+      Phone: 'processed to sound like someone singing through a 90s phone',
+      Bullhorn: 'processed to sound like singing through a bullhorn',
+      Echo: 'with an 8th note repeating delay effect',
+      Underwater: 'processed to sound like singing underwater',
+    };
+
+    let prompt = `Acapella vocal singing: ${safePhrase}, in the key of ${note} ${chordType}, dry studio quality`;
+    if (voiceTone && typeof voiceTone === 'string') {
+      prompt += `, ${String(voiceTone).toLowerCase()} vocal tone`;
+    }
+    if (vibe && typeof vibe === 'string') {
+      prompt += `, ${String(vibe).toLowerCase()} vibe`;
+    }
+    if (effect && typeof effect === 'string' && EFFECT_PROMPTS[effect]) {
+      prompt += `, ${EFFECT_PROMPTS[effect]}`;
+    }
+    prompt += ', short phrase, maximum 5 seconds.';
 
     const elevenRes = await fetch('https://api.elevenlabs.io/v1/music/stream', {
       method: 'POST',
