@@ -1,4 +1,4 @@
-const VALID_NOTES = new Set(['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
+const VALID_NOTES = new Set(['C', 'C#', 'D', 'Db', 'Eb', 'E', 'F', 'F#', 'G', 'Gb', 'Ab', 'A', 'Bb', 'B']);
 const VALID_CHORDS = new Set(['Major', 'Minor', 'Major7', 'Minor7', 'Dominant7', 'Sus4', 'Diminished']);
 
 export default async function handler(req: any, res: any) {
