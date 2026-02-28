@@ -33,7 +33,7 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const prompt = `Acapella vocal singing: ${safePhrase}, in the key of ${note} ${chordType}, dry studio quality, short phrase, maximum 10 seconds.`;
+    const prompt = `Acapella vocal singing: ${safePhrase}, in the key of ${note} ${chordType}, dry studio quality, short phrase, maximum 5 seconds.`;
 
     const elevenRes = await fetch('https://api.elevenlabs.io/v1/music/stream', {
       method: 'POST',
@@ -45,7 +45,7 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({
         model_id: 'music_v1',
         prompt,
-        music_length_ms: 10000,
+        music_length_ms: 5000,
         output_format: 'mp3_44100_128',
         force_instrumental: false,
       }),

@@ -93,7 +93,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
       const res = await fetch('/api/elevenlabs-generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phrase: phrase.trim(), note: globalKeyRoot, chordType: globalChordType, maxSeconds: 10 }),
+        body: JSON.stringify({ phrase: phrase.trim(), note: globalKeyRoot, chordType: globalChordType, maxSeconds: 5 }),
       });
 
       if (!res.ok) {
@@ -111,7 +111,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
         audio.onloadedmetadata = () => resolve(audio.duration || 5);
         audio.onerror = () => resolve(5);
       });
-      const safeDuration = Math.min(10, Math.max(0.2, metadataLoaded));
+      const safeDuration = Math.min(5, Math.max(0.2, metadataLoaded));
       setDuration(safeDuration);
 
       // Auto-load generated vocal sample into the slot immediately (module stays open so user can play preview).
@@ -181,7 +181,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
       </div>
 
       <div className="mt-3 text-[11px] text-white/60">
-        Prompt: Acapella vocal singing phrase in {globalKeyRoot} {globalChordType} (set in Global Key, top right), dry studio quality, short phrase (10s max).
+        Prompt: Acapella vocal singing phrase in {globalKeyRoot} {globalChordType} (set in Global Key, top right), dry studio quality, short phrase (5s max).
       </div>
 
       {error && <div className="mt-2 text-sm text-red-300">{error}</div>}
@@ -189,7 +189,7 @@ export const VoiceGenerator: React.FC<VoiceGeneratorProps> = ({ onUseSample }) =
       {audioUrl && (
         <div className="mt-3 rounded-lg border border-white/20 bg-black/60 p-2">
           <div ref={waveformRef} />
-          <div className="text-[11px] text-white/60 mt-1">Preview length: {duration.toFixed(2)}s (trimmed to 10s max on load)</div>
+          <div className="text-[11px] text-white/60 mt-1">Preview length: {duration.toFixed(2)}s (trimmed to 5s max on load)</div>
         </div>
       )}
     </section>
