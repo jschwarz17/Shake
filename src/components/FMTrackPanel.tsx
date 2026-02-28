@@ -71,16 +71,25 @@ export const FMTrackPanel: React.FC<FMTrackPanelProps> = ({ trackId, onToggleMod
               {isAdvanced ? '6-Osc Advanced' : 'Standard FM'}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => handleToggle(track.id)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black border border-white/35 text-xs font-medium hover:border-white/60 text-white"
-          >
-            <span className="w-10 h-5 rounded-full border border-white/20 bg-white/10 flex items-center px-0.5">
-              <span className={`w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.6)] transition-all duration-200 ${track.mode === 'fm' ? 'ml-0' : 'ml-4'}`} />
-            </span>
-            {track.mode === 'fm' ? 'FM' : 'Sample'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void toneEngine.triggerPad(trackId, track)}
+              className="px-3 py-1.5 rounded-lg bg-black border border-cyan-400/70 text-xs font-medium hover:border-cyan-300 text-white"
+            >
+              Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => handleToggle(track.id)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black border border-white/35 text-xs font-medium hover:border-white/60 text-white"
+            >
+              <span className="w-10 h-5 rounded-full border border-white/20 bg-white/10 flex items-center px-0.5">
+                <span className={`w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.6)] transition-all duration-200 ${track.mode === 'fm' ? 'ml-0' : 'ml-4'}`} />
+              </span>
+              {track.mode === 'fm' ? 'FM' : 'Sample'}
+            </button>
+          </div>
         </div>
 
         {isAdvanced && (

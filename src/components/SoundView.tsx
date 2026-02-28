@@ -425,6 +425,11 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
     }
   };
 
+  const handlePreview = async () => {
+    await toneEngine.initialize();
+    toneEngine.triggerPad(trackId, track);
+  };
+
   const compact = isVoiceTrack;
   return (
     <div className={compact ? 'p-2' : 'p-3 sm:p-6'}>
@@ -433,13 +438,22 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           <h2 className="text-white text-2xl font-bold">
             Sound View - {track.name}
           </h2>
-          <button
-            type="button"
-            onClick={() => void toggleTrackModeFromSoundView()}
-            className="modern-btn px-4 py-2 rounded-lg text-sm"
-          >
-            Mode: {track.mode === 'fm' ? 'FM' : 'Sample'} (Switch)
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePreview}
+              className="modern-btn px-4 py-2 rounded-lg text-sm !border-cyan-400/70"
+            >
+              Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => void toggleTrackModeFromSoundView()}
+              className="modern-btn px-4 py-2 rounded-lg text-sm"
+            >
+              Mode: {track.mode === 'fm' ? 'FM' : 'Sample'} (Switch)
+            </button>
+          </div>
         </div>
       )}
       <div className={`flex items-center gap-3 flex-wrap ${compact ? 'mb-2' : 'mb-4'}`}>
@@ -454,13 +468,22 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
         />
         <span className="text-cyan-300 text-sm font-mono w-10">{Math.round((track.volume ?? 1) * 100)}%</span>
         {compact && (
-          <button
-            type="button"
-            onClick={() => void toggleTrackModeFromSoundView()}
-            className="ml-1 modern-btn px-2 py-1 rounded text-xs"
-          >
-            {track.mode === 'fm' ? 'FM' : 'Sample'}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handlePreview}
+              className="modern-btn px-2 py-1 rounded text-xs !border-cyan-400/70"
+            >
+              Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => void toggleTrackModeFromSoundView()}
+              className="ml-1 modern-btn px-2 py-1 rounded text-xs"
+            >
+              {track.mode === 'fm' ? 'FM' : 'Sample'}
+            </button>
+          </>
         )}
       </div>
       {isHHTrack && (

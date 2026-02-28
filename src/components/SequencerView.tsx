@@ -8,6 +8,7 @@ interface StepButtonProps {
   isActive: boolean;
   isCurrent: boolean;
   onToggle: () => void;
+  showMeasureLineLeft?: boolean;
 }
 
 const StepButton: React.FC<StepButtonProps> = ({
@@ -15,13 +16,15 @@ const StepButton: React.FC<StepButtonProps> = ({
   isActive,
   isCurrent,
   onToggle,
+  showMeasureLineLeft,
 }) => {
-  return (
+return (
     <button
       onClick={onToggle}
       className={`
         w-full h-full transition-colors !rounded-none
         !border-[0.5px] !border-white/45
+        ${showMeasureLineLeft ? 'measure-line-left' : ''}
         ${isActive
           ? '!bg-[linear-gradient(145deg,#5f9dff_0%,#3b82f6_45%,#1d4ed8_100%)] !shadow-[0_0_14px_rgba(59,130,246,0.65),inset_0_1px_0_rgba(255,255,255,0.4),inset_0_-3px_8px_rgba(0,0,0,0.35)]'
           : '!bg-black !shadow-none'}
@@ -99,6 +102,7 @@ const SequencerGrid: React.FC<{
                 isActive={activeSteps.has(step)}
                 isCurrent={step === currentStep}
                 onToggle={() => toggleStep(track.id, step)}
+                showMeasureLineLeft={step === 4 || step === 8 || step === 12}
               />
             ))}
           </React.Fragment>
@@ -181,18 +185,6 @@ export const SequencerView: React.FC = () => {
               tracks={tracks}
               currentStep={currentStep}
               toggleStep={toggleStep}
-            />
-            <div
-              className="absolute top-0 bottom-0 w-[6px] bg-white/95 shadow-[0_0_10px_rgba(255,255,255,0.35)] pointer-events-none z-30"
-              style={{ left: '25%', transform: 'translateX(-3px)' }}
-            />
-            <div
-              className="absolute top-0 bottom-0 w-[6px] bg-white/95 shadow-[0_0_10px_rgba(255,255,255,0.35)] pointer-events-none z-30"
-              style={{ left: '50%', transform: 'translateX(-3px)' }}
-            />
-            <div
-              className="absolute top-0 bottom-0 w-[6px] bg-white/95 shadow-[0_0_10px_rgba(255,255,255,0.35)] pointer-events-none z-30"
-              style={{ left: '75%', transform: 'translateX(-3px)' }}
             />
             <div
               className="absolute top-0 bottom-0 pointer-events-none transition-all duration-75 z-10"

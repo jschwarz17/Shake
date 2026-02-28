@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
+import { toneEngine } from '../engine/ToneEngine';
 import { getScaleNotes, getBassNoteRange, midiToKeyLabel } from '../engine/scaleUtils';
 
 const BASS_TRACK_ID = 1;
@@ -60,6 +61,16 @@ export const BassModule: React.FC = () => {
       <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
         <h3 className="text-lg font-bold text-white">Bass</h3>
         <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => {
+              const track = useMIDIStore.getState().tracks[BASS_TRACK_ID];
+              if (track) void toneEngine.triggerPad(BASS_TRACK_ID, track);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-black border border-cyan-400/70 text-xs font-medium hover:border-cyan-300 text-white"
+          >
+            Preview
+          </button>
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <span className="text-sm font-medium text-white min-w-[2.5rem]">
               Sub {bassSubEnabled ? 'On' : 'Off'}
