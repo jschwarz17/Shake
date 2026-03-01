@@ -215,7 +215,6 @@ export const BassModule: React.FC = () => {
                 const isSub = !isPrimary && bassSubEnabled && bassEvents.some(
                   (e) => e.id.startsWith('sub-') && e.step === step && e.note === note
                 );
-                const hasNote = isPrimary || isSub;
                 const showMeasureLine = step === 4 || step === 8 || step === 12;
                 return (
                   <button

@@ -21,7 +21,7 @@ export const DancingFigure: React.FC = () => {
   const [spinning, setSpinning] = React.useState(false);
   const [bowing, setBowing] = React.useState(false);
   const [frozen, setFrozen] = React.useState(false);
-  const animRef = React.useRef<number>();
+  const animRef = React.useRef<number>(undefined);
   const barCountRef = React.useRef(0);
   const prevStepRef = React.useRef(-1);
 

@@ -15,7 +15,6 @@ class ToneEngine {
   private masterGain!: Tone.Gain;
   private masterVolume = 1;
   private bassSubPlayer: Tone.Player | null = null;
-  private bassSubEnabled = false;
   private activeBassPlayers: Tone.Player[] = [];
   private bassFilter!: Tone.Filter;
   private djFilter!: Tone.Filter; // highpass for DJ filter effect
@@ -236,8 +235,8 @@ class ToneEngine {
     }
   }
 
-  setBassSubEnabled(enabled: boolean) {
-    this.bassSubEnabled = enabled;
+  setBassSubEnabled(_enabled: boolean) {
+    // Sub is now handled as sequencer events in BassModule
   }
 
   setDJFilter(position: number, q: number) {
@@ -533,7 +532,7 @@ class ToneEngine {
     }
   ) {
     this.setBPM(bpm);
-    if (options?.bassSubEnabled !== undefined) this.bassSubEnabled = options.bassSubEnabled;
+    if (options?.bassSubEnabled !== undefined) this.setBassSubEnabled(options.bassSubEnabled);
     this.setHalf(!!options?.halfActive);
     this.initializeFMSynths(tracks);
 
