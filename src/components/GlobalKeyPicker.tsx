@@ -22,7 +22,7 @@ const SingleScroll: React.FC<SingleScrollProps> = ({ options, value, onChange, c
 
   return (
     <div
-      className={`flex items-center h-9 rounded-lg bg-black/50 border border-white/20 text-white font-semibold text-sm tracking-wide select-none ${className}`}
+      className={`flex items-center justify-center min-w-[3.5rem] h-9 rounded-lg bg-black/50 border border-white/20 text-white font-semibold text-sm tracking-wide select-none ${className}`}
       onWheel={(e) => {
         e.preventDefault();
         cycle(e.deltaY > 0 ? 1 : -1);
