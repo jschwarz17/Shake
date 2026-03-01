@@ -13,6 +13,8 @@ interface SingleScrollProps {
 
 const SingleScroll: React.FC<SingleScrollProps> = ({ options, value, onChange, className = '' }) => {
   const currentIndex = Math.max(0, (options as readonly string[]).findIndex((o) => o === value));
+  const touchStartY = React.useRef<number | null>(null);
+
   const cycle = (dir: 1 | -1) => {
     const next = (currentIndex + dir + options.length) % options.length;
     onChange((options as readonly string[])[next]);
@@ -20,10 +22,19 @@ const SingleScroll: React.FC<SingleScrollProps> = ({ options, value, onChange, c
 
   return (
     <div
-      className={`flex items-center justify-center min-w-[3.5rem] h-9 rounded-lg bg-black/50 border border-white/20 text-white font-semibold text-sm tracking-wide select-none ${className}`}
+      className={`flex items-center h-9 rounded-lg bg-black/50 border border-white/20 text-white font-semibold text-sm tracking-wide select-none ${className}`}
       onWheel={(e) => {
         e.preventDefault();
         cycle(e.deltaY > 0 ? 1 : -1);
+      }}
+      onTouchStart={(e) => {
+        touchStartY.current = e.touches[0].clientY;
+      }}
+      onTouchEnd={(e) => {
+        if (touchStartY.current === null) return;
+        const dy = touchStartY.current - e.changedTouches[0].clientY;
+        touchStartY.current = null;
+        if (Math.abs(dy) > 15) cycle(dy > 0 ? 1 : -1);
       }}
       role="spinbutton"
       tabIndex={0}
@@ -39,7 +50,23 @@ const SingleScroll: React.FC<SingleScrollProps> = ({ options, value, onChange, c
         }
       }}
     >
-      <span className="px-2">{value}</span>
+      <button
+        type="button"
+        onClick={() => cycle(-1)}
+        className="px-1.5 h-full flex items-center text-white/40 hover:text-white/80 active:text-white transition-colors"
+        aria-label="Previous"
+      >
+        ‹
+      </button>
+      <span className="px-1 min-w-[2rem] text-center">{value}</span>
+      <button
+        type="button"
+        onClick={() => cycle(1)}
+        className="px-1.5 h-full flex items-center text-white/40 hover:text-white/80 active:text-white transition-colors"
+        aria-label="Next"
+      >
+        ›
+      </button>
     </div>
   );
 };
