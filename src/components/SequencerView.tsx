@@ -220,16 +220,13 @@ const FilterPad: React.FC<{
         className={`absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none transition-colors duration-100 ${dotColor}`}
         style={{ left: `${pos.x * 100}%`, top: `${(1 - pos.y) * 100}%` }}
       />
-      <span className="absolute bottom-1 left-2 text-[10px] text-cyan-300/60 font-semibold pointer-events-none">
+      <span className="absolute top-1 left-2 text-[10px] text-cyan-300/50 font-semibold pointer-events-none">
         LPF
       </span>
-      <span className="absolute bottom-1 right-2 text-[10px] text-orange-300/60 font-semibold pointer-events-none">
+      <span className="absolute top-1 right-2 text-[10px] text-orange-300/50 font-semibold pointer-events-none">
         HPF
       </span>
-      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] text-white/30 pointer-events-none">
-        OFF
-      </span>
-      <span className="absolute top-1 left-1/2 -translate-x-1/2 text-xs text-purple-300 font-mono pointer-events-none">
+      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs text-purple-300 font-mono pointer-events-none">
         {filterLabel}
       </span>
     </div>
