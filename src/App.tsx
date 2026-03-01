@@ -16,7 +16,6 @@ function App() {
   
   const [currentView, setCurrentView] = React.useState<View>('pad');
   const [isInitialized, setIsInitialized] = React.useState(false);
-  const [isRecording, setIsRecording] = React.useState(false);
   const [masterVolume, setMasterVolume] = React.useState(80);
   
   const bpm = useMIDIStore((state) => state.bpm);
@@ -212,34 +211,19 @@ function App() {
         {currentView === 'sounds' && <SoundsView />}
       </main>
 
-      {/* Footer - hidden on sequencer view */}
+      {/* Footer */}
       <footer className={`flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-t border-[rgba(255,255,255,0.1)] py-2 ${currentView === 'sequencer' ? 'hidden' : ''}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-3 sm:px-12 flex-wrap gap-3">
-          <div className="flex gap-3 items-center">
-            <button
-              onClick={() => setIsRecording(!isRecording)}
-              className={`${btnBase} ${isRecording ? 'text-red-400 border-red-400/50 animate-pulse shadow-[0_0_15px_rgba(248,113,113,0.3)]' : ''}`}
-            >
-              REC
-            </button>
-            <button className={btnBase}>
-              SAVE
-            </button>
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <button className={btnBase}>MASTER</button>
-            <div className="flex items-center gap-2">
-              <span className="text-white/50 text-xs uppercase tracking-wider font-semibold">Master Volume</span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={masterVolume}
-                onChange={(e) => setMasterVolume(Number(e.target.value))}
-                className="w-28 sm:w-36 accent-cyan-500"
-              />
-            </div>
+        <div className="max-w-7xl mx-auto flex items-center justify-end w-full px-3 sm:px-12">
+          <div className="flex items-center gap-2">
+            <span className="text-white/50 text-xs uppercase tracking-wider font-semibold">Master Volume</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={masterVolume}
+              onChange={(e) => setMasterVolume(Number(e.target.value))}
+              className="w-28 sm:w-36 accent-cyan-500"
+            />
           </div>
         </div>
       </footer>
