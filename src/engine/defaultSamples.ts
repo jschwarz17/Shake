@@ -14,7 +14,7 @@ export const DEFAULT_DRUM_SAMPLES = {
   rim: `${BASE_URL}/CR78/hihat.mp3`,
   shaker: '/samples/shaker.wav',
   crash: `${BASE_URL}/Techno/tom3.mp3`,
-  voice: `${BASE_URL}/acoustic-kit/kick.mp3`, // placeholder until user assigns vocal sample
+  voice: '/samples/voice_default.wav',
 };
 
 export const BASS_PRIMARY_URL = '/samples/bass_primary.wav';
