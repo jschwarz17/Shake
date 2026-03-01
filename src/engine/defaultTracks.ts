@@ -64,6 +64,6 @@ export const DEFAULT_TRACKS: Track[] = [
   },
   {
     id: 8, name: 'Voice', midiNote: 60, mode: 'sample',
-    swing: 0, volume: 0.8, mute: false, solo: false,
+    swing: 0, volume: 0.4, mute: false, solo: false,
   },
 ];
