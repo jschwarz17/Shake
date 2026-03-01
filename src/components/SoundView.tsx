@@ -433,31 +433,29 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
   const compact = isVoiceTrack;
   return (
     <div className={compact ? 'p-2' : 'p-3 sm:p-6'}>
-      {!compact && (
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <h2 className="text-white text-2xl font-bold">
-            Sound View - {track.name}
-          </h2>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handlePreview}
-              className="modern-btn px-4 py-2 rounded-lg text-sm !border-cyan-400/70"
-            >
-              Preview
-            </button>
-            <button
-              type="button"
-              onClick={() => void toggleTrackModeFromSoundView()}
-              className="modern-btn px-4 py-2 rounded-lg text-sm"
-            >
-              Mode: {track.mode === 'fm' ? 'FM' : 'Sample'} (Switch)
-            </button>
-          </div>
+      <div className={`flex items-center justify-between gap-3 ${compact ? 'mb-2' : 'mb-4'} flex-wrap`}>
+        <h2 className={`text-white font-bold ${compact ? 'text-lg' : 'text-2xl'}`}>
+          {compact ? 'Voice' : `Sound View - ${track.name}`}
+        </h2>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handlePreview}
+            className={`modern-btn rounded-lg !border-cyan-400/70 ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}`}
+          >
+            Preview
+          </button>
+          <button
+            type="button"
+            onClick={() => void toggleTrackModeFromSoundView()}
+            className={`modern-btn rounded-lg ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-sm'}`}
+          >
+            Mode: {track.mode === 'fm' ? 'FM' : 'Sample'} {!compact && '(Switch)'}
+          </button>
         </div>
-      )}
+      </div>
       <div className={`flex items-center gap-3 flex-wrap ${compact ? 'mb-2' : 'mb-4'}`}>
-        {!compact && <span className="text-white/70 text-xs font-medium">Track volume</span>}
+        <span className="text-white/70 text-xs font-medium">Track volume</span>
         <input
           type="range"
           min={0}
@@ -467,24 +465,6 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           className="w-32 accent-cyan-500"
         />
         <span className="text-cyan-300 text-sm font-mono w-10">{Math.round((track.volume ?? 1) * 100)}%</span>
-        {compact && (
-          <>
-            <button
-              type="button"
-              onClick={handlePreview}
-              className="modern-btn px-2 py-1 rounded text-xs !border-cyan-400/70"
-            >
-              Preview
-            </button>
-            <button
-              type="button"
-              onClick={() => void toggleTrackModeFromSoundView()}
-              className="ml-1 modern-btn px-2 py-1 rounded text-xs"
-            >
-              {track.mode === 'fm' ? 'FM' : 'Sample'}
-            </button>
-          </>
-        )}
       </div>
       {isHHTrack && (
         <div className={`flex items-center gap-3 flex-wrap ${compact ? 'mb-2' : 'mb-4'}`}>
@@ -599,10 +579,10 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
         </div>
       ) : (
         <div className={`text-center border-2 border-dashed border-gray-700 rounded-lg ${compact ? 'py-4' : 'py-12'}`}>
-          <p className="text-gray-400 text-sm">{isVoiceTrack ? 'Generate a vocal above to begin.' : 'No sample loaded for this track'}</p>
+          <p className="text-gray-400 text-sm">{isVoiceTrack ? 'No vocal sample loaded.' : 'No sample loaded for this track'}</p>
           {!compact && (
             <p className="text-gray-500 text-sm mt-2">
-              {isVoiceTrack ? 'Enter up to 10 words, set Global Key (top right), then generate.' : 'Click Play once to load defaults, or load a sample from Pad view'}
+              {isVoiceTrack ? 'Click Preview to hear the default vocal, or generate a new one above.' : 'Click Play once to load defaults, or load a sample from Pad view'}
             </p>
           )}
         </div>

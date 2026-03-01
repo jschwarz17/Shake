@@ -436,8 +436,7 @@ class ToneEngine {
     if (track.sample?.chopEnabled && baseDuration > 0.05) {
       const chopCount = 4;
       const chopDuration = baseDuration / chopCount;
-      const step = event.step ?? 0;
-      const chopIndex = ((step * 31) + 17) % chopCount;
+      const chopIndex = Math.floor(Math.random() * chopCount);
       startTime = baseStart + chopIndex * chopDuration;
       duration = Math.min(chopDuration, Math.max(0.01, player.buffer.duration - startTime));
     }
