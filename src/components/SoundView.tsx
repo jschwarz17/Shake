@@ -561,6 +561,33 @@ export const SoundView: React.FC<SoundViewProps> = ({ trackId }) => {
           </div>
         )}
 
+          {isVoiceTrack && (
+          <div className={`w-full rounded border border-white/35 bg-black/85 ${compact ? 'px-2 py-1.5' : 'px-3 py-2'}`}>
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div>
+                <span className="text-xs font-semibold text-purple-200">Reverse</span>
+                {!compact && <p className="text-[10px] text-white/50 mt-0.5">Play sample backwards · works with chop</p>}
+              </div>
+              <button
+                type="button"
+                onClick={() => updateTrack(trackId, {
+                  sample: {
+                    ...track.sample!,
+                    reverseEnabled: !track.sample?.reverseEnabled,
+                  },
+                })}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  track.sample?.reverseEnabled
+                    ? 'bg-purple-500/20 border border-purple-400 text-purple-300'
+                    : 'bg-white/10 border border-white/30 text-white/70 hover:border-white/50'
+                }`}
+              >
+                {track.sample?.reverseEnabled ? 'On' : 'Off'}
+              </button>
+            </div>
+          </div>
+        )}
+
           {!compact && (
             <div className="bg-gray-900 p-4 rounded-lg">
               <h3 className="text-white font-medium mb-2">Sample Info</h3>

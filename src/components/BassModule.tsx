@@ -28,18 +28,73 @@ export const BassModule: React.FC = () => {
     [events]
   );
 
+  const primaryEvents = React.useMemo(
+    () => bassEvents.filter((e) => !e.id.startsWith('sub-')),
+    [bassEvents]
+  );
+
   const isInScale = (note: number) => chromatic || scaleNotes.has(note);
+
+  const prevSubKeyRef = React.useRef('');
+
+  React.useEffect(() => {
+    const desiredSubs: { id: string; step: number; note: number; velocity: number; tick: number; duration: number }[] = [];
+    if (bassSubEnabled) {
+      for (const pe of primaryEvents) {
+        const subNote = pe.note - 12;
+        if (subNote >= LOWEST_MIDI) {
+          desiredSubs.push({
+            id: `sub-${pe.id}`,
+            step: pe.step,
+            note: subNote,
+            velocity: Math.round(pe.velocity * 0.7),
+            tick: pe.tick,
+            duration: pe.duration,
+          });
+        }
+      }
+    }
+
+    const newKey = desiredSubs.map((s) => `${s.id}:${s.note}`).sort().join('|');
+    if (newKey === prevSubKeyRef.current) return;
+    prevSubKeyRef.current = newKey;
+
+    const existingSubs = bassEvents.filter((e) => e.id.startsWith('sub-'));
+    for (const sub of existingSubs) removeEvent(sub.id);
+    for (const sub of desiredSubs) {
+      addEvent({
+        trackId: BASS_TRACK_ID,
+        step: sub.step,
+        note: sub.note,
+        velocity: sub.velocity,
+        tick: sub.tick,
+        duration: sub.duration,
+      }, sub.id);
+    }
+  }, [bassSubEnabled, primaryEvents]);
 
   const handleCellClick = (step: number, note: number) => {
     if (!isInScale(note)) return;
-    const existingThisCell = bassEvents.find((e) => e.step === step && e.note === note);
+    const isSubGhost = bassSubEnabled && bassEvents.some(
+      (e) => e.id.startsWith('sub-') && e.step === step && e.note === note
+    );
+    if (isSubGhost) return;
+
+    const existingThisCell = primaryEvents.find((e) => e.step === step && e.note === note);
     if (existingThisCell) {
       removeEvent(existingThisCell.id);
+      const subId = `sub-${existingThisCell.id}`;
+      const existingSub = bassEvents.find((e) => e.id === subId);
+      if (existingSub) removeEvent(existingSub.id);
       return;
     }
-    // Monophonic: one note per step — remove any existing note on this step
-    const existingOnStep = bassEvents.find((e) => e.step === step);
-    if (existingOnStep) removeEvent(existingOnStep.id);
+    const existingOnStep = primaryEvents.find((e) => e.step === step);
+    if (existingOnStep) {
+      removeEvent(existingOnStep.id);
+      const subId = `sub-${existingOnStep.id}`;
+      const existingSub = bassEvents.find((e) => e.id === subId);
+      if (existingSub) removeEvent(existingSub.id);
+    }
     addEvent({
       trackId: BASS_TRACK_ID,
       step,
@@ -54,6 +109,11 @@ export const BassModule: React.FC = () => {
     const arr: number[] = [];
     for (let n = HIGHEST_MIDI; n >= LOWEST_MIDI; n--) arr.push(n);
     return arr;
+  }, []);
+
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    scrollRef.current?.scrollTo(0, 0);
   }, []);
 
   return (
@@ -118,7 +178,7 @@ export const BassModule: React.FC = () => {
         Scale: {globalKeyRoot} {globalChordType} (Global Key). {chromatic ? 'All notes allowed.' : 'Only scale notes.'}
       </p>
 
-      <div className="flex-1 min-h-0 flex overflow-auto rounded-lg border border-white/20 bg-black/40">
+      <div ref={scrollRef} className="flex-1 min-h-0 flex overflow-auto rounded-lg border border-white/20 bg-black/40">
         {/* Single scrollable row: piano keys + grid so they scroll together */}
         <div className="flex flex-shrink-0 min-w-full" style={{ minHeight: NOTE_COUNT * 24 }}>
           {/* Piano keys column - all 36 rows */}
@@ -151,10 +211,12 @@ export const BassModule: React.FC = () => {
           >
             {notesReversed.map((note) =>
               Array.from({ length: STEPS }, (_, step) => {
-                const hasNote = bassEvents.some((e) => e.step === step && e.note === note);
-                const noteActiveClass = hasNote
-                  ? '!bg-[linear-gradient(145deg,#5f9dff_0%,#3b82f6_45%,#1d4ed8_100%)] !border-white/45 !shadow-[0_0_14px_rgba(59,130,246,0.65),inset_0_1px_0_rgba(255,255,255,0.4)]'
-                  : '';
+                const isPrimary = primaryEvents.some((e) => e.step === step && e.note === note);
+                const isSub = !isPrimary && bassSubEnabled && bassEvents.some(
+                  (e) => e.id.startsWith('sub-') && e.step === step && e.note === note
+                );
+                const hasNote = isPrimary || isSub;
+                const showMeasureLine = step === 4 || step === 8 || step === 12;
                 return (
                   <button
                     key={`${step}-${note}`}
@@ -162,11 +224,15 @@ export const BassModule: React.FC = () => {
                     onClick={() => handleCellClick(step, note)}
                     disabled={!isInScale(note)}
                     className={`min-w-0 rounded-sm transition-colors !border-[0.5px] ${
-                      hasNote
-                        ? noteActiveClass
-                        : isInScale(note)
-                          ? 'bg-white/15 border-white/10 hover:bg-white/30'
-                          : 'bg-white/5 border-white/5 cursor-not-allowed opacity-50'
+                      showMeasureLine ? 'measure-line-left' : ''
+                    } ${
+                      isPrimary
+                        ? '!bg-[linear-gradient(145deg,#5f9dff_0%,#3b82f6_45%,#1d4ed8_100%)] !border-white/45 !shadow-[0_0_14px_rgba(59,130,246,0.65),inset_0_1px_0_rgba(255,255,255,0.4)]'
+                        : isSub
+                          ? '!bg-[linear-gradient(145deg,#4a7acc_0%,#2563aa_45%,#1a3f7a_100%)] !border-cyan-400/40 !shadow-[0_0_8px_rgba(34,211,238,0.3)] opacity-70'
+                          : isInScale(note)
+                            ? 'bg-white/15 border-white/10 hover:bg-white/30'
+                            : 'bg-white/5 border-white/5 cursor-not-allowed opacity-50'
                     }`}
                     style={{ height: 23 }}
                   />

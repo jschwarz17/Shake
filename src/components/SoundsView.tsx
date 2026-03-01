@@ -48,7 +48,7 @@ export const SoundsView: React.FC = () => {
       {/* Track selector - all 9 tracks; Voice (id 8) in medium blue */}
       <div className="flex-shrink-0 p-3 border-b border-white/10 bg-[rgba(255,255,255,0.05)]">
         <h2 className="text-lg font-bold mb-2 text-white">Sounds</h2>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-1">
           {tracks.map((t) => {
             const isVoice = t.id === 8;
             const displayName = isVoice ? 'Voice' : t.name;
@@ -58,7 +58,7 @@ export const SoundsView: React.FC = () => {
                 key={t.id}
                 type="button"
                 onClick={() => setSelectedTrackId(t.id)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 min-w-0 py-1.5 rounded-lg text-xs font-medium transition-colors overflow-hidden whitespace-nowrap ${
                   isVoice
                     ? isSelected
                       ? 'bg-blue-600/40 border-2 border-blue-400 text-blue-100 shadow-[0_0_12px_rgba(59,130,246,0.4)]'

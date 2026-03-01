@@ -17,6 +17,8 @@ export interface SampleData {
   duration: number; // Sample playback duration in seconds
   /** When true, sample is played as 4 even chops; step index picks one deterministically. */
   chopEnabled?: boolean;
+  /** When true, sample plays in reverse. */
+  reverseEnabled?: boolean;
 }
 
 export interface FMSynthParams {

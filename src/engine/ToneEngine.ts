@@ -441,13 +441,22 @@ class ToneEngine {
       duration = Math.min(chopDuration, Math.max(0.01, player.buffer.duration - startTime));
     }
 
-    newPlayer.start(time, startTime, duration);
+    if (track.sample?.reverseEnabled) {
+      newPlayer.reverse = true;
+      const bufDur = player.buffer.duration;
+      const revStart = Math.max(0, bufDur - (startTime + duration));
+      newPlayer.start(time, revStart, duration);
+    } else {
+      newPlayer.start(time, startTime, duration);
+    }
     
     // Dispose after playback
     newPlayer.onstop = () => {
       newPlayer.dispose();
     };
   }
+
+  private lastBassStep = -1;
 
   private playBassSample(event: MIDIEvent, time: number, track: Track) {
     const players = this.players.get(1);
@@ -456,47 +465,28 @@ class ToneEngine {
     let playbackRate = Math.pow(2, (event.note - this.BASS_ROOT_MIDI) / 12);
     playbackRate = Math.max(0.25, Math.min(4, playbackRate));
     const vol = (event.velocity / 127) * track.volume;
-    const primaryGain = this.bassSubEnabled ? vol * 0.85 : vol;
 
-    // Monophonic: stop any currently playing bass to avoid overlapping and digital artifacts
-    for (const p of this.activeBassPlayers) {
-      try {
-        p.stop(time);
-      } catch (_) {}
+    const step = event.step ?? -1;
+    if (step !== this.lastBassStep) {
+      for (const p of this.activeBassPlayers) {
+        try { p.stop(time); } catch (_) {}
+      }
+      this.activeBassPlayers.length = 0;
+      this.lastBassStep = step;
     }
-    this.activeBassPlayers.length = 0;
 
-    const maxDuration = 2; // primary: cap playback (lowpass filter reduces artifacts)
-    const subMaxDuration = 1; // sub: short and punchy
-    const playOne = (buf: Tone.ToneAudioBuffer, gain: number) => {
-      const p = new Tone.Player(buf).connect(this.bassFilter);
-      p.volume.value = Tone.gainToDb(gain);
-      p.playbackRate = playbackRate;
-      const duration = Math.min(buf.duration / playbackRate, maxDuration);
-      p.start(time, 0, duration);
-      this.activeBassPlayers.push(p);
-      p.onstop = () => {
-        const i = this.activeBassPlayers.indexOf(p);
-        if (i >= 0) this.activeBassPlayers.splice(i, 1);
-        p.dispose();
-      };
+    const maxDuration = 2;
+    const p = new Tone.Player(primary.buffer).connect(this.bassFilter);
+    p.volume.value = Tone.gainToDb(vol);
+    p.playbackRate = playbackRate;
+    const duration = Math.min(primary.buffer.duration / playbackRate, maxDuration);
+    p.start(time, 0, duration);
+    this.activeBassPlayers.push(p);
+    p.onstop = () => {
+      const i = this.activeBassPlayers.indexOf(p);
+      if (i >= 0) this.activeBassPlayers.splice(i, 1);
+      p.dispose();
     };
-
-    playOne(primary.buffer, primaryGain);
-    if (this.bassSubEnabled && this.bassSubPlayer?.buffer?.loaded) {
-      const sub = this.bassSubPlayer;
-      const p = new Tone.Player(sub.buffer).connect(this.bassFilter);
-      p.volume.value = Tone.gainToDb(vol * 0.7);
-      p.playbackRate = playbackRate;
-      const subDuration = Math.min(sub.buffer.duration / playbackRate, subMaxDuration);
-      p.start(time, 0, subDuration);
-      this.activeBassPlayers.push(p);
-      p.onstop = () => {
-        const i = this.activeBassPlayers.indexOf(p);
-        if (i >= 0) this.activeBassPlayers.splice(i, 1);
-        p.dispose();
-      };
-    }
   }
 
   /**

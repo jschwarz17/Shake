@@ -17,7 +17,7 @@ interface MIDIStore extends SequencerState {
   currentPageIndex: number;
 
   // Actions
-  addEvent: (event: Omit<MIDIEvent, 'id'>) => void;
+  addEvent: (event: Omit<MIDIEvent, 'id'>, customId?: string) => void;
   removeEvent: (eventId: string) => void;
   updateEvent: (eventId: string, updates: Partial<MIDIEvent>) => void;
   toggleStep: (trackId: number, step: number) => void;
@@ -75,10 +75,10 @@ export const useMIDIStore = create<MIDIStore>((set, get) => ({
   currentPageIndex: 0,
   
   // Event actions
-  addEvent: (event) => {
+  addEvent: (event, customId) => {
     const newEvent: MIDIEvent = {
       ...event,
-      id: generateId(),
+      id: customId ?? generateId(),
     };
     set((state) => ({
       events: [...state.events, newEvent],

@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useMIDIStore } from '../engine/MIDIStore';
 import { toneEngine } from '../engine/ToneEngine';
 import { RHYTHM_PRESETS } from '../presets/rhythmPresets';
+import { DancingFigure } from './DancingFigure';
 
 interface StepButtonProps {
   step: number;
@@ -292,32 +293,42 @@ export const SequencerView: React.FC = () => {
     <div className="flex-1 min-h-0 bg-[#050505] flex flex-col overflow-hidden">
       {/* Top controls */}
       <div className="px-3 sm:px-12 pt-1 pb-1 flex-shrink-0">
-        <div className="flex items-center justify-between gap-3 mb-1">
-          <h2 className="text-base sm:text-lg font-bold tracking-wider uppercase text-white pl-[100px] sm:pl-[160px]">
-            SEQUENCER
-          </h2>
-          <button
-            onClick={clearAllTracks}
-            className="modern-btn px-3 py-1.5 !text-white rounded-lg text-xs"
-          >
-            Clear All
-          </button>
-        </div>
-        <div className="grid grid-cols-5 gap-1 pl-[100px] sm:pl-[160px]">
-          {RHYTHM_PRESETS.map((preset, index) => (
-            <button
-              key={preset.name}
-              onClick={() => {
-                const timing = GENRE_TIMING[RHYTHM_PRESETS[index].name];
-                if (!timing) return;
-                setBPM(timing.bpm);
-                setGlobalSwing(timing.swing);
-              }}
-              className="modern-btn px-2 py-1.5 text-[9px] sm:text-[10px] uppercase tracking-wide rounded text-white transition-all border !border-blue-400/80"
-            >
-              {preset.name}
-            </button>
-          ))}
+        <div className="flex gap-2">
+          {/* Dancing figure in the track-label gutter */}
+          <div className="w-[100px] sm:w-[160px] flex items-center justify-center flex-shrink-0">
+            <DancingFigure />
+          </div>
+
+          {/* Header + presets */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-3 mb-1">
+              <h2 className="text-base sm:text-lg font-bold tracking-wider uppercase text-white">
+                SEQUENCER
+              </h2>
+              <button
+                onClick={clearAllTracks}
+                className="modern-btn px-3 py-1.5 !text-white rounded-lg text-xs"
+              >
+                Clear All
+              </button>
+            </div>
+            <div className="grid grid-cols-5 gap-1">
+              {RHYTHM_PRESETS.map((preset, index) => (
+                <button
+                  key={preset.name}
+                  onClick={() => {
+                    const timing = GENRE_TIMING[RHYTHM_PRESETS[index].name];
+                    if (!timing) return;
+                    setBPM(timing.bpm);
+                    setGlobalSwing(timing.swing);
+                  }}
+                  className="modern-btn px-2 py-1.5 text-[9px] sm:text-[10px] uppercase tracking-wide rounded text-white transition-all border !border-blue-400/80"
+                >
+                  {preset.name}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
