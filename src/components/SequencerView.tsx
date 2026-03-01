@@ -150,10 +150,10 @@ const DJButton: React.FC<{
 
 // ---------- Filter XY Pad ----------
 const FilterPad: React.FC<{
-  onFilterChange: (freq: number, q: number) => void;
+  onFilterChange: (position: number, q: number) => void;
 }> = ({ onFilterChange }) => {
   const padRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 0, y: 0.5 });
+  const [pos, setPos] = useState({ x: 0.5, y: 0.5 });
   const [dragging, setDragging] = useState(false);
 
   const applyPosition = useCallback(
@@ -163,9 +163,8 @@ const FilterPad: React.FC<{
       const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
       const y = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
       setPos({ x, y });
-      const freq = 20 * Math.pow(1000, x);
       const q = 0.7 + y * 14.3;
-      onFilterChange(freq, q);
+      onFilterChange(x, q);
     },
     [onFilterChange],
   );
@@ -182,7 +181,19 @@ const FilterPad: React.FC<{
     };
   }, [dragging, applyPosition]);
 
-  const freqDisplay = Math.round(20 * Math.pow(1000, pos.x));
+  let filterLabel = 'OFF';
+  let dotColor = 'bg-white/60 shadow-[0_0_14px_rgba(255,255,255,0.4)]';
+  if (pos.x > 0.52) {
+    const t = (pos.x - 0.5) / 0.5;
+    const freq = 20 * Math.pow(1000, t);
+    filterLabel = `HPF ${freq >= 1000 ? `${(freq / 1000).toFixed(1)}k` : Math.round(freq)} Hz`;
+    dotColor = 'bg-orange-400 shadow-[0_0_20px_rgba(251,146,60,0.8)]';
+  } else if (pos.x < 0.48) {
+    const t = pos.x / 0.5;
+    const freq = 20 * Math.pow(1000, t);
+    filterLabel = `LPF ${freq >= 1000 ? `${(freq / 1000).toFixed(1)}k` : Math.round(freq)} Hz`;
+    dotColor = 'bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.8)]';
+  }
 
   return (
     <div
@@ -199,21 +210,27 @@ const FilterPad: React.FC<{
         style={{
           backgroundImage:
             'linear-gradient(to right, rgba(168,85,247,0.3) 1px, transparent 1px), linear-gradient(to bottom, rgba(168,85,247,0.3) 1px, transparent 1px)',
-          backgroundSize: '20% 25%',
+          backgroundSize: '10% 25%',
         }}
       />
+      {/* Center line */}
+      <div className="absolute top-0 bottom-0 left-1/2 w-px bg-white/30 pointer-events-none" />
+      {/* Draggable dot */}
       <div
-        className="absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.8)] pointer-events-none"
+        className={`absolute w-5 h-5 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none transition-colors duration-100 ${dotColor}`}
         style={{ left: `${pos.x * 100}%`, top: `${(1 - pos.y) * 100}%` }}
       />
-      <span className="absolute bottom-1 left-2 text-[10px] text-purple-300/60 pointer-events-none">
-        20 Hz
+      <span className="absolute bottom-1 left-2 text-[10px] text-cyan-300/60 font-semibold pointer-events-none">
+        LPF
       </span>
-      <span className="absolute bottom-1 right-2 text-[10px] text-purple-300/60 pointer-events-none">
-        20 kHz
+      <span className="absolute bottom-1 right-2 text-[10px] text-orange-300/60 font-semibold pointer-events-none">
+        HPF
+      </span>
+      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] text-white/30 pointer-events-none">
+        OFF
       </span>
       <span className="absolute top-1 left-1/2 -translate-x-1/2 text-xs text-purple-300 font-mono pointer-events-none">
-        {freqDisplay >= 1000 ? `${(freqDisplay / 1000).toFixed(1)}k` : freqDisplay} Hz
+        {filterLabel}
       </span>
     </div>
   );
@@ -245,18 +262,18 @@ export const SequencerView: React.FC = () => {
   // Reset DJ filter when filter pad is deactivated or component unmounts
   useEffect(() => {
     if (!filterActive) {
-      toneEngine.setDJFilter(20, 1);
+      toneEngine.setDJFilter(0.5, 1);
     }
   }, [filterActive]);
 
   useEffect(() => {
     return () => {
-      toneEngine.setDJFilter(20, 1);
+      toneEngine.setDJFilter(0.5, 1);
     };
   }, []);
 
-  const handleFilterChange = useCallback((freq: number, q: number) => {
-    toneEngine.setDJFilter(freq, q);
+  const handleFilterChange = useCallback((position: number, q: number) => {
+    toneEngine.setDJFilter(position, q);
   }, []);
 
   const toggleFilter = () => setFilterActive((v) => !v);

@@ -240,11 +240,22 @@ class ToneEngine {
     this.bassSubEnabled = enabled;
   }
 
-  setDJFilter(freq: number, q: number) {
-    if (this.djFilter) {
-      this.djFilter.frequency.rampTo(freq, 0.05);
-      this.djFilter.Q.value = q;
+  setDJFilter(position: number, q: number) {
+    if (!this.djFilter) return;
+    const dead = 0.02;
+    if (position > 0.5 + dead) {
+      this.djFilter.type = 'highpass';
+      const t = (position - 0.5) / 0.5;
+      this.djFilter.frequency.rampTo(20 * Math.pow(1000, t), 0.05);
+    } else if (position < 0.5 - dead) {
+      this.djFilter.type = 'lowpass';
+      const t = position / 0.5;
+      this.djFilter.frequency.rampTo(20 * Math.pow(1000, t), 0.05);
+    } else {
+      this.djFilter.type = 'highpass';
+      this.djFilter.frequency.rampTo(20, 0.05);
     }
+    this.djFilter.Q.value = q;
   }
 
   setHalf(active: boolean) {
