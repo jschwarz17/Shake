@@ -212,8 +212,8 @@ function App() {
         {currentView === 'sounds' && <SoundsView />}
       </main>
 
-      {/* Footer - fixed height */}
-      <footer className="flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-t border-[rgba(255,255,255,0.1)] py-2">
+      {/* Footer - hidden on sequencer view */}
+      <footer className={`flex-shrink-0 bg-[rgba(255,255,255,0.05)] backdrop-blur-md border-t border-[rgba(255,255,255,0.1)] py-2 ${currentView === 'sequencer' ? 'hidden' : ''}`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full px-3 sm:px-12 flex-wrap gap-3">
           <div className="flex gap-3 items-center">
             <button
