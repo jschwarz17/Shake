@@ -50,23 +50,7 @@ const SingleScroll: React.FC<SingleScrollProps> = ({ options, value, onChange, c
         }
       }}
     >
-      <button
-        type="button"
-        onClick={() => cycle(-1)}
-        className="px-1.5 h-full flex items-center text-white/40 hover:text-white/80 active:text-white transition-colors"
-        aria-label="Previous"
-      >
-        ‹
-      </button>
-      <span className="px-1 min-w-[2rem] text-center">{value}</span>
-      <button
-        type="button"
-        onClick={() => cycle(1)}
-        className="px-1.5 h-full flex items-center text-white/40 hover:text-white/80 active:text-white transition-colors"
-        aria-label="Next"
-      >
-        ›
-      </button>
+      <span className="px-2">{value}</span>
     </div>
   );
 };
